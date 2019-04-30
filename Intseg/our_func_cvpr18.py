@@ -186,12 +186,12 @@ def our_func_sunx(usrId, imIdx, im, cnt, pn, clk):
 
     sess=tf.Session()
 
-    if cnt == 0 and imIdx == 0:
-        global network,input,output,sz
-        input = tf.placeholder(tf.float32, shape=[None, None, None, 7])
-        output = tf.placeholder(tf.float32, shape=[None, None, None, 1])
-        sz = tf.placeholder(tf.int32, shape=[2])
-        network=build(input,sz)
+
+    global network,input,output,sz
+    input = tf.placeholder(tf.float32, shape=[None, None, None, 7])
+    output = tf.placeholder(tf.float32, shape=[None, None, None, 1])
+    sz = tf.placeholder(tf.int32, shape=[2])
+    network=build(input,sz)
 
     saver = tf.train.Saver(var_list=[var for var in tf.trainable_variables() if var.name.startswith('g_')])
     sess.run(tf.initialize_all_variables())
