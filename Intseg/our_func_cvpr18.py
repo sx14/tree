@@ -175,6 +175,9 @@ def our_func(usrId, imIdx, im_path, cnt, pn, clk):
 
 
 def our_func_sunx(usrId, imIdx, im, cnt, pn, clk):
+    root_wkdir = os.getcwd()
+    curr_wkdir = os.path.dirname(__file__)
+    os.chdir(curr_wkdir)
 
     if not os.path.isdir("res/%d/Ours/%05d" % (usrId, imIdx)):
         os.makedirs("res/%d/Ours/%05d/ints" % (usrId, imIdx))
@@ -243,4 +246,5 @@ def our_func_sunx(usrId, imIdx, im, cnt, pn, clk):
     tmp_ol_path = 'res/%d/Ours/%05d/tmps/ol_%03d.png' % (usrId, imIdx, cnt)
     cv2.imwrite(tmp_ol_path, tmp_ol)
     segmask[segmask>0]=1
+    os.chdir(root_wkdir)
     return segmask.astype(np.uint8)
