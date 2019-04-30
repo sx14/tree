@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 import shutil
 import numpy as np
 from util.show_image import *
@@ -156,7 +157,8 @@ def segment_trunk_int(im, tag_mask, pr_bg_mask, im_id=1, user_id=1):
 
     neg_pts = centroids.astype(np.int32).tolist()
 
-    shutil.rmtree('Intseg/res')
+    if os.path.isdir('Intseg/res'):
+        shutil.rmtree('Intseg/res')
 
     pts = pos_pts + neg_pts
     pns = [1, 1] + [0 for _ in range(len(neg_pts))]
