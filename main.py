@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     img_root = 'data/tree_tag'
 
-    for img_id in os.listdir(img_root):
+    for i, img_id in enumerate(os.listdir(img_root)):
         im_path = os.path.join(img_root, img_id)
         im = cv2.imread(im_path)
 
@@ -33,6 +33,6 @@ if __name__ == '__main__':
         pr_bg_mask = leaf_mask | cloth_mask
         # show_images(img_id, [im, leaf_mask, cloth_mask])
 
-        show_img, trunk_mask = segment_trunk_int(im, tag_mask, pr_bg_mask)
+        show_img, trunk_mask = segment_trunk_int(im, tag_mask, pr_bg_mask, im_id=i)
         # show_img, trunk_mask = segment_trunk_thr(im, pr_bg_mask)
         show_images(img_id, [im, show_img, trunk_mask])
