@@ -175,11 +175,13 @@ def our_func(usrId, imIdx, im_path, cnt, pn, clk):
 
 
 def our_func_sunx(usrId, imIdx, input_image, pns, clks):
-    PROJECT_ROOT = os.path.dirname(__file__)
-    if not os.path.isdir(PROJECT_ROOT+"/res/%d/Ours/%05d" % (usrId, imIdx)):
-        os.makedirs(PROJECT_ROOT+"/res/%d/Ours/%05d/ints" % (usrId, imIdx))
-        os.makedirs(PROJECT_ROOT+"/res/%d/Ours/%05d/segs" % (usrId, imIdx))
-        os.makedirs(PROJECT_ROOT+"/res/%d/Ours/%05d/tmps" % (usrId, imIdx))
+    root_workdir = os.getcwd()
+    curr_workdir = os.path.dirname(__file__)
+    os.chdir(curr_workdir)
+    if not os.path.isdir("res/%d/Ours/%05d" % (usrId, imIdx)):
+        os.makedirs("res/%d/Ours/%05d/ints" % (usrId, imIdx))
+        os.makedirs("res/%d/Ours/%05d/segs" % (usrId, imIdx))
+        os.makedirs("res/%d/Ours/%05d/tmps" % (usrId, imIdx))
 
     # load model
     sess = tf.Session()
@@ -193,7 +195,7 @@ def our_func_sunx(usrId, imIdx, input_image, pns, clks):
     saver = tf.train.Saver(var_list=[var for var in tf.trainable_variables() if var.name.startswith('g_')])
     sess.run(tf.initialize_all_variables())
 
-    ckpt = tf.train.get_checkpoint_state(PROJECT_ROOT+"/Models/ours_cvpr18")
+    ckpt = tf.train.get_checkpoint_state("Models/ours_cvpr18")
     if ckpt:
         saver.restore(sess, ckpt.model_checkpoint_path)
 
@@ -207,22 +209,22 @@ def our_func_sunx(usrId, imIdx, input_image, pns, clks):
             int_pos = np.uint8(255*np.ones([iH,iW]))
             int_neg = np.uint8(255*np.ones([iH,iW]))
         else:
-            int_pos = cv2.imread(PROJECT_ROOT+'/res/%d/Ours/%05d/ints/pos_dt_%03d.png' % (usrId, imIdx, cnt - 1), -1)
-            int_neg = cv2.imread(PROJECT_ROOT+'/res/%d/Ours/%05d/ints/neg_dt_%03d.png' % (usrId, imIdx, cnt - 1), -1)
+            int_pos = cv2.imread('res/%d/Ours/%05d/ints/pos_dt_%03d.png' % (usrId, imIdx, cnt - 1), -1)
+            int_neg = cv2.imread('res/%d/Ours/%05d/ints/neg_dt_%03d.png' % (usrId, imIdx, cnt - 1), -1)
         clk_pos = (int_pos==0)
         clk_neg = (int_neg==0)
         if pn == 1:
-            clk_pos[clk.y,clk.x] = 1
+            clk_pos[clk[0],clk[1]] = 1
             int_pos = ndimage.distance_transform_edt(1-clk_pos)
             int_pos = np.uint8(np.minimum(np.maximum(int_pos, 0.0), 255.0))
-            cv2.imwrite(PROJECT_ROOT+'/res/%d/Ours/%05d/ints/pos_dt_%03d.png' % (usrId, imIdx, cnt), int_pos)
-            cv2.imwrite(PROJECT_ROOT+'/res/%d/Ours/%05d/ints/neg_dt_%03d.png' % (usrId, imIdx, cnt), int_neg)
+            cv2.imwrite('res/%d/Ours/%05d/ints/pos_dt_%03d.png' % (usrId, imIdx, cnt), int_pos)
+            cv2.imwrite('res/%d/Ours/%05d/ints/neg_dt_%03d.png' % (usrId, imIdx, cnt), int_neg)
         else:
-            clk_neg[clk.y,clk.x] = 1
+            clk_neg[clk[0],clk[1]] = 1
             int_neg = ndimage.distance_transform_edt(1-clk_neg)
             int_neg = np.uint8(np.minimum(np.maximum(int_neg, 0.0), 255.0))
-            cv2.imwrite(PROJECT_ROOT+'/res/%d/Ours/%05d/ints/pos_dt_%03d.png' % (usrId, imIdx, cnt), int_pos)
-            cv2.imwrite(PROJECT_ROOT+'/res/%d/Ours/%05d/ints/neg_dt_%03d.png' % (usrId, imIdx, cnt), int_neg)
+            cv2.imwrite('res/%d/Ours/%05d/ints/pos_dt_%03d.png' % (usrId, imIdx, cnt), int_pos)
+            cv2.imwrite('res/%d/Ours/%05d/ints/neg_dt_%03d.png' % (usrId, imIdx, cnt), int_neg)
         input_pos_clks = deepcopy(int_pos)
         input_neg_clks = deepcopy(int_neg)
         input_pos_clks[int_pos != 0] = 255
@@ -233,7 +235,7 @@ def our_func_sunx(usrId, imIdx, input_image, pns, clks):
         output_image = np.minimum(np.maximum(output_image, 0.0), 1.0)
         output_image[np.where(output_image>0.5)]=1
         output_image[np.where(output_image<=0.5)]=0
-        res_path = PROJECT_ROOT+'/res/%d/Ours/%05d/segs/%03d.png' % (usrId, imIdx, cnt)
+        res_path = 'res/%d/Ours/%05d/segs/%03d.png' % (usrId, imIdx, cnt)
         segmask = np.uint8(output_image[0, 0, :, :, 0] * 255.0)
 
         cv2.imwrite(res_path, segmask)
@@ -243,8 +245,10 @@ def our_func_sunx(usrId, imIdx, input_image, pns, clks):
         tmp_ol[:,:,1] = 0.5*tmp_ol[:,:,1] + 0.5*segmask
         tmp_ol[:,:,2] = 0.5*tmp_ol[:,:,2] + 0.5*segmask
 
-        tmp_ol_path = PROJECT_ROOT+'/res/%d/Ours/%05d/tmps/ol_%03d.png' % (usrId, imIdx, cnt)
+        tmp_ol_path = 'res/%d/Ours/%05d/tmps/ol_%03d.png' % (usrId, imIdx, cnt)
         cv2.imwrite(tmp_ol_path, tmp_ol)
     if segmask is not None:
         segmask[segmask>0] = 1
+
+    os.chdir(root_workdir)
     return segmask
