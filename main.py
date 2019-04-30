@@ -8,7 +8,7 @@ from util.show_image import *
 
 if __name__ == '__main__':
 
-    img_root = 'data/tree_tag'
+    img_root = 'data/tree_tag1'
 
     for i, img_id in enumerate(os.listdir(img_root)):
         im_path = os.path.join(img_root, img_id)
@@ -29,8 +29,10 @@ if __name__ == '__main__':
 
         # step4: segment definitive background part
         leaf_mask = segment_leaf(im)
-        cloth_mask = segment_cloth(im)
-        pr_bg_mask = leaf_mask | cloth_mask
+        pr_bg_mask = leaf_mask
+
+        # cloth_mask = segment_cloth(im)
+        # pr_bg_mask = leaf_mask | cloth_mask
         # show_images(img_id, [im, leaf_mask, cloth_mask])
 
         show_img, trunk_mask = segment_trunk_int(im, tag_mask, pr_bg_mask, im_id=i)

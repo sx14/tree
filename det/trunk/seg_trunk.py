@@ -148,17 +148,16 @@ def segment_trunk_int(im, tag_mask, pr_bg_mask, im_id=0, user_id=0):
     pos_pts = [[pos_y1, pos_x], [pos_y2, pos_x]]
 
     # negative points
-    # _, labels, stats, centroids = cv2.connectedComponentsWithStats(pr_bg_mask)
-    #
-    # areas = stats[:, -1]
-    # sorted_inds = np.argsort(areas)[::-1]
-    # sorted_inds = sorted_inds[1:min(6, len(sorted_inds))]
-    # centroids = centroids[sorted_inds]
-    #
-    # neg_pts = centroids.astype(np.int32).tolist()
+    _, labels, stats, centroids = cv2.connectedComponentsWithStats(pr_bg_mask)
+
+    areas = stats[:, -1]
+    large_labels = np.argsort(areas)[::-1]
+    large_labels = large_labels[1:min(5, len(large_labels))]
+    neg_pts = centroids[large_labels].astype(np.int32).tolist()
+
     margin = 50
     im_h, im_w, _ = im.shape
-    neg_pts = [[margin, margin],
+    neg_pts += [[margin, margin],
                [margin, im_w - margin],
                [im_h - margin, margin],
                [im_h - margin, im_w - margin]]
