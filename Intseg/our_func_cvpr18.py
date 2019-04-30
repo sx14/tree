@@ -183,6 +183,13 @@ def our_func_sunx(usrId, imIdx, input_image, pns, clks):
 
     # load model
     sess = tf.Session()
+
+    global network, input, output, sz
+    input = tf.placeholder(tf.float32, shape=[None, None, None, 7])
+    output = tf.placeholder(tf.float32, shape=[None, None, None, 1])
+    sz = tf.placeholder(tf.int32, shape=[2])
+    network = build(input, sz)
+
     saver = tf.train.Saver(var_list=[var for var in tf.trainable_variables() if var.name.startswith('g_')])
     sess.run(tf.initialize_all_variables())
 
@@ -191,17 +198,11 @@ def our_func_sunx(usrId, imIdx, input_image, pns, clks):
         saver.restore(sess, ckpt.model_checkpoint_path)
 
     segmask = None
+    iH, iW, _ = input_image.shape
     for cnt in range(len(pns)):
         pn = pns[cnt]
         clk = clks[cnt]
-        if cnt == 0 and imIdx == 0:
-            global network,input,output,sz
-            input = tf.placeholder(tf.float32, shape=[None, None, None, 7])
-            output = tf.placeholder(tf.float32, shape=[None, None, None, 1])
-            sz = tf.placeholder(tf.int32, shape=[2])
-            network=build(input,sz)
 
-        iH, iW, _ = input_image.shape
         if cnt == 0:
             int_pos = np.uint8(255*np.ones([iH,iW]))
             int_neg = np.uint8(255*np.ones([iH,iW]))
