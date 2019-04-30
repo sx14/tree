@@ -1,6 +1,6 @@
 # coding: utf-8
 import numpy as np
-from det.trunk.seg_trunk_thr import segment_trunk
+from det.trunk.seg_trunk import segment_trunk
 from det.tag.seg_tag import segment_tag
 from util.show_image import *
 
@@ -35,17 +35,3 @@ def extract_lines(contour_map):
     return im_empty
 
 
-if __name__ == '__main__':
-    # trunk
-    im_path = '../data/tree1/4543.jpg'
-    im = cv2.imread(im_path)
-    trunk_map = segment_trunk(im)
-    trunk_contour_map = detect_contour(im, trunk_map)
-    show_images([im, trunk_map, trunk_contour_map])
-
-    # tag
-    im_path = '../data/tag/1.jpg'
-    im = cv2.imread(im_path)
-    tag_map = segment_tag(im)
-    tag_contour_map = detect_contour(im, tag_map)
-    show_images([im, tag_map, tag_contour_map])

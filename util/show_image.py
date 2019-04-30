@@ -1,8 +1,7 @@
 import cv2
 
 
-def show_image(im):
-    win_name = 'show'
+def show_image(win_name, im):
     im_h = im.shape[0]
     im_w = im.shape[1]
     ratio = 800.0 / im_h
@@ -15,11 +14,11 @@ def show_image(im):
     cv2.destroyAllWindows()
 
 
-def show_images(ims):
+def show_images(name, ims):
     left_top_x = 0
 
     for i, im in enumerate(ims):
-        win_name = 'show %d' % i
+        win_name = 'name%s[%d]' % (name, i+1)
         im_h = im.shape[0]
         im_w = im.shape[1]
         ratio = 800.0 / im_h
