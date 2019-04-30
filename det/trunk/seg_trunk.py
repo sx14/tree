@@ -1,6 +1,5 @@
 # coding: utf-8
-
-import cv2
+import shutil
 import numpy as np
 from util.show_image import *
 from Intseg.our_func_cvpr18 import our_func_sunx
@@ -133,7 +132,7 @@ def get_center_connected_component(mask):
     return labels.astype(np.uint8)
 
 
-def segment_trunk_int(im, tag_mask, pr_bg_mask, im_id=1, user_id =1):
+def segment_trunk_int(im, tag_mask, pr_bg_mask, im_id=1, user_id=1):
     # positive points
     # 标签的box上下50像素
     tag_ys, tag_xs = np.where(tag_mask > 0)
@@ -157,10 +156,13 @@ def segment_trunk_int(im, tag_mask, pr_bg_mask, im_id=1, user_id =1):
 
     neg_pts = centroids.astype(np.int32).tolist()
 
+    shutil.rmtree('Intseg/res')
+
     pts = pos_pts + neg_pts
     pns = [1, 1] + [0 for _ in range(len(neg_pts))]
-
-    mask = our_func_sunx(user_id, im_id, im, pns, pts)
+    mask = np.zeros(im.shape[:2]).astype(np.uint8)
+    for i in range(len(pts)):
+        mask = our_func_sunx(user_id, im_id, im, i, pns[i], pts[i])
     show_img = im * mask[:, :, np.newaxis]
     show_img[mask == 0, :] = 0
     mask[mask > 0] = 255
