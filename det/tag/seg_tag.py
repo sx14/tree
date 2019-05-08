@@ -29,15 +29,17 @@ def segment_tag(im):
     im_h, im_w = im_bin.shape
     im_ct_y = int(im_h / 2.0)
     im_ct_x = int(im_w / 2.0)
-    dom_comp_label = labels[im_ct_y, im_ct_x]
-    assert dom_comp_label > 0
-    labels[labels != dom_comp_label] = 0
-    labels[labels > 0] = 255
-    tag_mask = labels.astype(np.uint8)
-    return tag_mask
+    center_comp_label = labels[im_ct_y, im_ct_x]
+    if center_comp_label > 0:
+        labels[labels != center_comp_label] = 0
+        labels[labels > 0] = 255
+        tag_mask = labels.astype(np.uint8)
+        return tag_mask
+    else:
+        return None
 
 
-def crop_image(im, tag_mask):
+def crop_image(im, tag_mask, n_tag_w=4, n_tag_h=1):
     im_h, im_w, _ = im.shape
 
     tag_ys, tag_xs = np.where(tag_mask > 0)
@@ -48,11 +50,9 @@ def crop_image(im, tag_mask):
     tag_h = ymax - ymin
     tag_w = xmax - xmin
 
+    # default:
     # crop width:  9 * tag_width
     # crop height: 3 * tag_height
-    n_tag_h = 1
-    n_tag_w = 4
-
     crop_ymin = np.maximum(ymin - int(n_tag_h * tag_h), 0)
     crop_ymax = np.minimum(ymax + int(n_tag_h * tag_h), im_h)
     crop_xmin = np.maximum(xmin - int(n_tag_w * tag_w), 0)

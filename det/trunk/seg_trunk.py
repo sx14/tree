@@ -5,6 +5,7 @@ import numpy as np
 from util.show_image import *
 from Intseg.our_func_cvpr18 import our_func_sunx
 
+
 def segment_leaf(im):
     im_h, im_w, _ = im.shape
     im = im.astype(np.int32)
@@ -12,6 +13,8 @@ def segment_leaf(im):
     leaf_mask = np.zeros(im.shape[:2]).astype(np.uint8)
     leaf_mask[im_bin > 10] = 255
     return leaf_mask
+
+
 
 
 def segment_cloth(im):
@@ -67,7 +70,7 @@ def segment_trunk_ff(im, tag_mask, pr_bg_mask):
     return im_copy, mask
 
 
-def segment_trunk(im, tag_mask, bg_mask):
+def segment_trunk_gc(im, tag_mask, bg_mask):
 
     # 将图像中确定是背景的区域设为黑色
     # im[pr_bg_mask > 0, :] = 0
@@ -134,7 +137,7 @@ def get_center_connected_component(mask):
 
 
 def segment_trunk_int(im, tag_mask, pr_bg_mask, im_id=0, user_id=0):
-    # positive points
+    # 2 positive points
     # 标签的box上下50像素
     tag_ys, tag_xs = np.where(tag_mask > 0)
     ymin = tag_ys.min()
@@ -145,18 +148,23 @@ def segment_trunk_int(im, tag_mask, pr_bg_mask, im_id=0, user_id=0):
     pos_y1 = ymin - 50
     pos_y2 = ymax + 50
     pos_x = int((xmin+xmax)/2.0)
+    # 2 pts
     pos_pts = [[pos_y1, pos_x], [pos_y2, pos_x]]
 
-    # negative points
+    # 8 negative points
     _, labels, stats, centroids = cv2.connectedComponentsWithStats(pr_bg_mask)
 
     areas = stats[:, -1]
     large_labels = np.argsort(areas)[::-1]
     large_labels = large_labels[1:min(5, len(large_labels))]
-    neg_pts = centroids[large_labels].astype(np.int32).tolist()
+    # 4 pts
+    neg_pts = [[c[1], c[0]] for c in centroids[large_labels].astype(np.int32).tolist()]
 
-    margin = 50
+    # 4 pts
+    # 取四个角作为negative points
+    margin = 10
     im_h, im_w, _ = im.shape
+    print('H:%d, W:%d' % (im_h, im_w))
     neg_pts += [[margin, margin],
                [margin, im_w - margin],
                [im_h - margin, margin],
@@ -170,6 +178,8 @@ def segment_trunk_int(im, tag_mask, pr_bg_mask, im_id=0, user_id=0):
     mask = np.zeros(im.shape[:2]).astype(np.uint8)
     for i in range(len(pts)):
         mask = our_func_sunx(user_id, im_id, im, i, pns[i], pts[i])
+    mask[mask > 0] = 255
+    mask = get_center_connected_component(mask)
     show_img = im * mask[:, :, np.newaxis]
     show_img[mask == 0, :] = 0
     mask[mask > 0] = 255

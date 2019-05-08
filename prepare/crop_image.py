@@ -1,8 +1,10 @@
+# coding: utf-8
 import os
 import cv2
 import numpy as np
 from util.show_image import *
 
+# 脚本只用来处理田贵松提供的图片数据
 org_im_root = '../data/tree/'
 tmp_im_root = '../data/tree1/'
 for img_id in os.listdir(org_im_root):

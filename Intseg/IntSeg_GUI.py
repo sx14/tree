@@ -118,7 +118,7 @@ class Example(Frame):
         time.sleep(2)
         im_path = self.filename
         bard = Image.open(im_path)
-        self.x_bd = bard.width
+        self.x_bd = bard.pixel_width
         self.y_bd = bard.height
         bardejov = ImageTk.PhotoImage(bard)
         label1 = Label(self, image=bardejov)
