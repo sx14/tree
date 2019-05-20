@@ -136,21 +136,7 @@ def get_center_connected_component(mask):
     return labels.astype(np.uint8)
 
 
-def segment_trunk_int(im, tag_mask, pr_bg_mask, im_id=0, user_id=0):
-    # 2 positive points
-    # 标签的box上下50像素
-    tag_ys, tag_xs = np.where(tag_mask > 0)
-    ymin = tag_ys.min()
-    ymax = tag_ys.max()
-    xmin = tag_xs.min()
-    xmax = tag_xs.max()
-
-    pos_y1 = ymin - 50
-    pos_y2 = ymax + 50
-    pos_x = int((xmin+xmax)/2.0)
-    # 2 pts
-    pos_pts = [[pos_y1, pos_x], [pos_y2, pos_x]]
-
+def segment_trunk_int(im, pos_pts, pr_bg_mask, im_id=0, user_id=0):
     # 8 negative points
     _, labels, stats, centroids = cv2.connectedComponentsWithStats(pr_bg_mask)
 

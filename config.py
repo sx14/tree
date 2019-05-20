@@ -1,6 +1,7 @@
 # coding: utf-8
 TAG_WIDTH = 27          # mm
 TAG_HEIGHT = 91         # mm
+POINT_DISTANCE = 10     # mm
 
 
 # 注意：
