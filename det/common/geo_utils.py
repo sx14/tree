@@ -29,13 +29,13 @@ def signed_pt_2_line(normal_line, pt):
 
 
 def line_estimate_error(normal_line, pts):
-    if normal_line is not None and pts is not None:
+    if normal_line is not None and pts is not None and len(pts) > 0:
         error_sum = 0
         for pt in pts:
             error_sum += pt_2_line(normal_line, pt)
         return error_sum * 1.0 / len(pts)
     else:
-        return None
+        return float('+Inf')
 
 
 def cos(v1, v2):

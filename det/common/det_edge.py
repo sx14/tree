@@ -4,8 +4,9 @@ import numpy as np
 from util.show_image import *
 from det.common.geo_utils import euc_dis
 
+
 def detect_contour(trunk_mask):
-    _, contours, _ = cv2.findContours(trunk_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    contours, _ = cv2.findContours(trunk_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     contour_mask = np.zeros((trunk_mask.shape[0], trunk_mask.shape[1], 3))
 
     for i, contour in enumerate(contours):

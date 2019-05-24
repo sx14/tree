@@ -148,19 +148,19 @@ def segment_trunk_int(im, pos_pts, pr_bg_mask, im_id=0, user_id=0):
 
     # 4 pts
     # 取四个角作为negative points
-    margin = 10
+    margin = 5
     im_h, im_w, _ = im.shape
-    print('H:%d, W:%d' % (im_h, im_w))
     neg_pts += [[margin, margin],
                [margin, im_w - margin],
                [im_h - margin, margin],
                [im_h - margin, im_w - margin]]
+    pos_pts = [[pt[1], pt[0]] for pt in pos_pts]
 
     if os.path.isdir('Intseg/res'):
         shutil.rmtree('Intseg/res')
 
     pts = pos_pts + neg_pts
-    pns = [1, 1] + [0 for _ in range(len(neg_pts))]
+    pns = [1] * len(pos_pts) + [0] * len(neg_pts)
     mask = np.zeros(im.shape[:2]).astype(np.uint8)
     for i in range(len(pts)):
         mask = our_func_sunx(user_id, im_id, im, i, pns[i], pts[i])
