@@ -1,6 +1,6 @@
 # coding: utf-8
 import os
-from det.laser.seg_laser import *
+from det.laser.seg_laser_dev import *
 from det.laser.laser import *
 from util.show_image import *
 from util.resize_image import *
