@@ -24,7 +24,7 @@ if __name__ == '__main__':
         im = cv2.imread(im_path)
         im = resize_image(im)
 
-        pt_pair, pt_mask, laser_mask, pt_score = segment_laser_pts(im, calibrate=True)
+        pt_pair, pt_mask, laser_mask, pt_score = segment_laser_points(im, use_bright=True)
         # show_images([im, laser_mask, pt_mask])
 
         if len(pt_pair) == 0:

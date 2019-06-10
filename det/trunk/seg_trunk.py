@@ -15,8 +15,6 @@ def segment_leaf(im):
     return leaf_mask
 
 
-
-
 def segment_cloth(im):
     im_h, im_w, _ = im.shape
     im = im.astype(np.int32)

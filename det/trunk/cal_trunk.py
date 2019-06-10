@@ -22,9 +22,12 @@ class Trunk:
         if len(pts) == 0:
             return None, None
 
+        PROTECT_COUNT = 30000
+        cnt = 0
         l_pts = []
         l_pt_ind = 0
-        while l_pt_ind >= 0:
+        while l_pt_ind >= 0 and cnt < PROTECT_COUNT:
+            cnt += 1
             l_pt = pts[l_pt_ind]
             l_pts.append(l_pt)
             pts.pop(l_pt_ind)

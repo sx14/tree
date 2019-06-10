@@ -6,6 +6,7 @@ from config import *
 from util.show_image import *
 from det.common.geo_utils import *
 
+
 class Laser:
 
     def __init__(self, pt_pair, pt_mask, laser_mask):
