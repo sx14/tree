@@ -1,6 +1,8 @@
 import os
 
 data_path = '../data/tree_flipped'
+# data_path = '/media/sunx/Data/dataset/tree-dataset/test'
+
 image_list = []
 for img_id in os.listdir(data_path):
     image_rel_path = os.path.join(data_path, img_id)

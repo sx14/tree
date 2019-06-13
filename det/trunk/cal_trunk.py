@@ -48,7 +48,10 @@ class Trunk:
         pts = sorted(pts, key=lambda a: (a[1], a[0]))
         l_pt_q = [pts.pop(0)]   # 左边缘上顶点
         l_pts = []
-        while len(l_pt_q) > 0:
+        PROTECT_COUNT = 30000
+        cnt = 0
+        while len(l_pt_q) > 0 and cnt < PROTECT_COUNT:
+            cnt += 1
             curr = l_pt_q.pop(0)
             l_pts.append(curr)
             l_pt_inds = []
@@ -69,7 +72,7 @@ class Trunk:
         left_pt = None
         right_pt = None
         left_diff = float('+Inf')
-        right_diff = float('Inf')
+        right_diff = float('+Inf')
         for pt in left_pts:
             x, y = pt
             diff = abs(A*x+B*y+C)
@@ -89,7 +92,7 @@ class Trunk:
         else:
             return None
 
-    def _fit_edge(self, pts, y_max):
+    def _fit_edge(self, pts, y_max, y_min=0):
         # 拟合的直线近似垂直于x轴，因此:
         # x=y*k+b
         def line_func(y, k, b):
@@ -98,7 +101,8 @@ class Trunk:
         pt_xs = [pt[0] for pt in pts]
         pt_ys = [pt[1] for pt in pts]
         k, b = curve_fit(line_func, pt_ys, pt_xs)[0]
-        pt_bot = [0*k+b, 0]
+        # print('x = %.2fy + %.2f' % (k, b))
+        pt_bot = [y_min*k+b, y_min]
         pt_top = [y_max*k+b, y_max]
         line = Edge(pt_top, pt_bot)
         return line
@@ -107,8 +111,11 @@ class Trunk:
         h, w = sub_mask.shape
 
         l_pts, r_pts = self._get_edge_pts2(sub_mask)
+        l_pts = sorted(l_pts, key=lambda pt: (pt[1], pt[0]))
+        r_pts = sorted(r_pts, key=lambda pt: (pt[1], pt[0]))
+
         if len(l_pts) < 2 or len(r_pts) < 2:
-            return None
+            return None, None
 
         l_line = self._fit_edge(l_pts, h)
         r_line = self._fit_edge(r_pts, h)
@@ -117,7 +124,14 @@ class Trunk:
         r_error = line_estimate_error(r_line.normal(), r_pts)
         # print('L(%.2f) | R(%.2f)' % (l_error, r_error))
         if l_error > 3 or r_error > 3:
-            return None
+            return None, None
+
+        corners = {
+            'left_top': l_pts[0],
+            'right_top': r_pts[0],
+            'left_bottom': l_pts[-1],
+            'right_bottom': r_pts[-1],
+        }
 
         # debug
         im_sub_mask = np.stack((sub_mask, sub_mask, sub_mask), axis=2)
@@ -142,26 +156,30 @@ class Trunk:
             pts = l_line.get_pts(10)
             l2r_dis = []
             for pt in pts:
-                Alp, Blp, Clp = l_line.normal_perpendicular(pt)
-                wid = self._width([Alp, Blp, Clp], l_pts, r_pts)
+                l_norm_per = l_line.normal_perpendicular(pt)
+                if l_norm_per is None:
+                    continue
+                wid = self._width(l_norm_per, l_pts, r_pts)
                 if wid is not None:
                     l2r_dis.append(wid)
 
             pts = r_line.get_pts(10)
             r2l_dis = []
             for pt in pts:
-                Arp, Brp, Crp = r_line.normal_perpendicular(pt)
-                wid = self._width([Arp, Brp, Crp], l_pts, r_pts)
+                r_norm_per = r_line.normal_perpendicular(pt)
+                if r_norm_per is None:
+                    continue
+                wid = self._width(r_norm_per, l_pts, r_pts)
                 if wid is not None:
                     r2l_dis.append(wid)
             # 计算均值
             dis_arr = l2r_dis + r2l_dis
             if len(dis_arr) > 0:
-                return sum(dis_arr)*1.0/len(dis_arr)
+                return sum(dis_arr)*1.0/len(dis_arr), corners
             else:
-                return None
+                return None, None
         else:
-            return None
+            return None, None
 
     def is_seg_succ(self):
         h, w = self.contour_mask.shape
@@ -209,19 +227,52 @@ class Trunk:
 
         n_patch = 4
         patch_widths = []
+        patch_left_tops = []
+        patch_left_bottoms = []
+        patch_right_tops = []
+        patch_right_bottoms = []
         interval_y = h * 1.0 / n_patch
         # 将轮廓mask分成4份，分别计算直径
+        # 从上往下，分四块
+        # 000000
+        # 111111
+        # 222222
+        # 333333
         for i in range(n_patch):
+            # 对每一块
             sub_mask = self.contour_mask[int(i*interval_y):int((i+1)*interval_y), :]
-            patch_width = self._patch_width(sub_mask)
+            patch_width, sub_patch_corners = self._patch_width(sub_mask)
             if patch_width is not None:
                 patch_widths.append(patch_width)
+
+                # fix shift on y
+                patch_left_top = [sub_patch_corners['left_top'][0],
+                                  sub_patch_corners['left_top'][1] + int(i*interval_y)]
+                patch_right_top = [sub_patch_corners['right_top'][0],
+                                   sub_patch_corners['right_top'][1] + int(i*interval_y)]
+                patch_left_bottom = [sub_patch_corners['left_bottom'][0],
+                                     sub_patch_corners['left_bottom'][1] + int(i*interval_y)]
+                patch_right_bottom = [sub_patch_corners['right_bottom'][0],
+                                      sub_patch_corners['right_bottom'][1] + int(i*interval_y)]
+
+                patch_left_tops.append(patch_left_top)
+                patch_right_tops.append(patch_right_top)
+                patch_left_bottoms.append(patch_left_bottom)
+                patch_right_bottoms.append(patch_right_bottom)
         # 计算均值
         if len(patch_widths) > 0:
             # pixel width, score
-            return sum(patch_widths)*1.0/len(patch_widths), (1 - 0.1 * (n_patch - len(patch_widths)))
+            trunk_corners = {
+                'left_top': patch_left_tops[0],
+                'right_top': patch_right_tops[0],
+                'left_bottom': patch_left_bottoms[-1],
+                'right_bottom': patch_right_bottoms[-1]
+            }
+            conf = 1 - 0.1 * (n_patch - len(patch_widths))
+            width = sum(patch_widths)*1.0/len(patch_widths)
+            return width, conf, trunk_corners
         else:
-            return -1, -1
+            return -1, -1, None
 
     def real_width_v1(self, shot_distance, RP_ratio):
         # W = M * (X/(X-M))
@@ -238,12 +289,12 @@ class Trunk:
             return None
 
     def real_width_v2(self, shot_distance, RP_ratio):
-        pixel_width, conf = self.pixel_width()
+        pixel_width, conf, trunk_corners = self.pixel_width()
         if pixel_width is not None and RP_ratio is not None:
             M = (pixel_width * RP_ratio)
             beta = math.atan(M / shot_distance)
             sin_beta = math.sin(beta)
             width = shot_distance * sin_beta / (1 - sin_beta)
-            return M, conf
+            return M, conf, trunk_corners
         else:
-            return -1, -1
+            return -1, -1, None

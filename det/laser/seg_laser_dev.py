@@ -24,49 +24,33 @@ def clean_image(im):
     return cleaned_im
 
 
-def get_bright_pt_mask(im, laser_mask, show=False):
-    # 激光点区域
-    # 排除激光线
-
-    # 膨胀红色区域，使其能够覆盖高亮点
-    kernel = np.ones((3, 3), np.uint8)
-    laser_mask_d = cv2.dilate(laser_mask, kernel, iterations=5)
-
-    bright_mask = get_bright_mask(im, False)
-    pt_mask = bright_mask & laser_mask_d
-
-    # 膨胀高亮点，使其连成区域
-    kernel = np.ones((3, 3), np.uint8)
-    pt_mask = cv2.dilate(pt_mask.astype(np.uint8), kernel)
-
-    if show:
-        im_pt = pt_mask.astype(np.uint8)
-        im_pt[im_pt > 0] = 255
-        show_image(im_pt)
-
-    return pt_mask
-
-
 def get_bright_mask(im, show=False):
     """
     获得高亮区域二值掩码
     :param im:      原图
     :param show:    是否显示
-    :return:
+    :return:        高亮区域掩码
     """
     im_grey = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     bright_mask = im_grey > 220
 
     # 1.膨胀高亮点，使其连成区域
     # 2.开运算，去毛边
-    kernel = np.ones((3, 3), np.uint8)
+    # kernel = np.ones((3, 3), np.uint8)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize=(3, 3))
     bright_mask = cv2.dilate(bright_mask.astype(np.uint8), kernel)
     bright_mask = cv2.morphologyEx(bright_mask, cv2.MORPH_OPEN, kernel)
 
     if show:
+        im_show = im.copy()
+        im_show = im_show / 2
+
         im_bright = bright_mask.astype(np.uint8)
         im_bright[im_bright > 0] = 255
-        show_images([im_bright])
+        im_bright = im_bright / 2
+
+        im_show[:, :, 1] = im_show[:, :, 1] + im_bright
+        show_images([im_show])
 
     return bright_mask
 
@@ -81,6 +65,7 @@ def get_laser_mask(im, dilate=False, show=False, use_hsv=True):
     """
 
     if use_hsv:
+        # TODO: 颜色范围要调
         im_hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
         red1 = cv2.inRange(im_hsv, np.array([158,50,190]), np.array([180,255,255])).astype(np.int32)
         red2 = cv2.inRange(im_hsv, np.array([0,50,190]), np.array([6,255,255])).astype(np.int32)
@@ -94,7 +79,8 @@ def get_laser_mask(im, dilate=False, show=False, use_hsv=True):
         laser_mask = laser_mask.astype(np.uint8)
 
     # 操作核
-    kernel = np.ones((3, 3), np.uint8)
+    # kernel = np.ones((3, 3), np.uint8)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize=(3, 3))
     if dilate:
         # 仅膨胀，红色激光区域彻底填补中央亮斑
         laser_mask = cv2.dilate(laser_mask, kernel, iterations=5)
@@ -107,7 +93,13 @@ def get_laser_mask(im, dilate=False, show=False, use_hsv=True):
     if show:
         im_red = laser_mask.astype(np.uint8)
         im_red[im_red > 0] = 255
-        show_image(im_red)
+
+        im_show = im.copy().astype(np.uint8)
+        im_show = im_show / 2
+        im_red = im_red / 2
+        im_show[:, :, 1] = im_show[:, :, 1] + im_red
+
+        show_image(im_show)
 
     return laser_mask
 
@@ -128,16 +120,20 @@ def get_laser_points(im):
     pt_pair, pt_mask, laser_mask, pt_score = segment_laser_points(cleaned_im, True)
     if len(pt_pair) > 0:
         # 成功
-        print('with bright.')
+        # print('with bright.')
+        pass
     else:
         # 高亮区域查找激光点失败
         # 降级，仅使用红色激光区域
-        print('without bright.')
+        # print('without bright.')
         pt_pair, pt_mask, laser_mask, pt_score = segment_laser_points(cleaned_im, False)
+        pt_score *= 0.5
 
-    # TODO: 没有激光线后，注释掉下一行
-    laser_mask = get_laser_mask(cleaned_im, dilate=False, use_hsv=False)
+    # TODO: 没有激光线后，注释掉下两行
+    laser_mask = get_laser_mask(cleaned_im, dilate=False, use_hsv=False, show=False)
     laser_mask[laser_mask > 0] = 255
+    # ===========================
+
     return pt_pair, pt_mask, laser_mask, pt_score
 
 
@@ -155,12 +151,12 @@ def segment_laser_points(im, use_bright=False):
 
     if use_bright:
         # 高亮区域与红色区域共同约束
-        bright_mask = get_bright_mask(im, False)
-        red_mask = get_laser_mask(im, dilate=True)
+        bright_mask = get_bright_mask(im, show=False)
+        red_mask = get_laser_mask(im, dilate=True, show=False)
         laser_mask = bright_mask * red_mask
     else:
         # 仅使用红色区域
-        laser_mask = get_laser_mask(im, dilate=False)
+        laser_mask = get_laser_mask(im, dilate=False, show=False)
 
     _, pt_label_mat, stats, centroids = cv2.connectedComponentsWithStats(laser_mask)
     pt_mask = laser_mask.copy()
@@ -202,7 +198,7 @@ def segment_laser_points(im, use_bright=False):
                     im_h * 0.25 < center1_y < im_h * 0.75 and \
                     im_h * 0.25 < center2_y < im_h * 0.75 and \
                     x_diff < im_w * 0.02 and \
-                    im_h * 0.02 < y_diff < im_h * 0.3 and \
+                    im_h * 0.06 < y_diff < im_h * 0.3 and \
                     a1a2 < 3 and wh1 < 2 and wh2 < 2:
 
                 pt_ind_pairs.append([i, j, x_diff + wh1 + wh2 + a1a2])
@@ -212,7 +208,7 @@ def segment_laser_points(im, use_bright=False):
     if len(pt_ind_pairs) > 0:
         if len(pt_ind_pairs) > 1:
             pt_score = 0.5
-            print('[WARNING] More than one laser point pair detected.')
+            # print('[WARNING] More than one laser point pair detected.')
         else:
             pt_score = 1.0
         # 若有多个时，取最可能的一对

@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import cv2
 
 
@@ -31,3 +32,20 @@ def show_images(ims, name='show'):
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
+def show_pts(im, pts):
+    """Draw points"""
+    fig, ax = plt.subplots(figsize=(12, 12))
+    ax.imshow(im, aspect='equal')
+    for i in range(0, len(pts)):
+
+        pt = pts[i]
+        ax.add_patch(
+            plt.Rectangle((pt[0]-1, pt[1]-1),
+                          3,
+                          3, fill=True,
+                          edgecolor=[255.0/255, 20.0/255, 147.0/255], linewidth=1))
+    plt.axis('off')
+    plt.tight_layout()
+    plt.show()

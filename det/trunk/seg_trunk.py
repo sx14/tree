@@ -134,15 +134,18 @@ def get_center_connected_component(mask):
     return labels.astype(np.uint8)
 
 
-def segment_trunk_int(im, pos_pts, pr_bg_mask, im_id=0, user_id=0):
-    # 8 negative points
-    _, labels, stats, centroids = cv2.connectedComponentsWithStats(pr_bg_mask)
+def segment_trunk_int(im, pos_pts, pr_bg_mask=None, im_id=0, user_id=0):
 
-    areas = stats[:, -1]
-    large_labels = np.argsort(areas)[::-1]
-    large_labels = large_labels[1:min(5, len(large_labels))]
-    # 4 pts
-    neg_pts = [[c[1], c[0]] for c in centroids[large_labels].astype(np.int32).tolist()]
+    # 8 negative points
+    neg_pts = []
+    if pr_bg_mask is not None:
+        _, labels, stats, centroids = cv2.connectedComponentsWithStats(pr_bg_mask)
+
+        areas = stats[:, -1]
+        large_labels = np.argsort(areas)[::-1]
+        large_labels = large_labels[1:min(5, len(large_labels))]
+        # 4 pts
+        neg_pts = [[c[1], c[0]] for c in centroids[large_labels].astype(np.int32).tolist()]
 
     # 4 pts
     # 取四个角作为negative points

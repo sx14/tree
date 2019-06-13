@@ -176,6 +176,7 @@ class Edge:
         # 过pt的垂线一般式
         A,B,C = self.normal()
         x,y = pt
+        t = A*x+B*y+C
         if abs(A*x+B*y+C) < 1e-5:
             if A == 0:
                 Ap = 1
