@@ -23,23 +23,24 @@ def parse_args():
 
 def measure_tree_width(image_path_list):
     if image_path_list is None or len(image_path_list) == 0:
+        # 输入为空
         return []
 
-    seg_count = 0
-    all_results = []
+    seg_count = 0           # 计数分割操作的次数
+    all_results = []        # 保存所有结果
+    image_num = len(image_path_list)
 
-    for i, im_path in enumerate(sorted(image_path_list)):
-
-        result = Result()
+    for i, im_path in enumerate(image_path_list):
+        result = Result()   # 保存当前图片的分割结果，初始化为失败
 
         if DEBUG:
             print('-' * 30)
-            print('[%d/%d]: %s' % (len(image_path_list), i + 1, im_path.split('/')[-1]))
+            print('[%d/%d]: %s' % (image_num, i + 1, im_path.split('/')[-1]))
 
-        im = cv2.imread(im_path)
-        im = resize_image(im)
+        im = cv2.imread(im_path)    # 加载图片
+        im = resize_image(im)       # 调整尺寸
 
-        # step1 获得激光点对位置，激光点mask，激光mask，激光得分
+        # step1: 获得激光点对位置，激光点mask，激光mask，激光得分
         pt_pair, pt_mask, laser_mask, pt_conf = get_laser_points(im, DEBUG)
 
         if DEBUG:
@@ -70,10 +71,10 @@ def measure_tree_width(image_path_list):
         if DEBUG:
             show_image(im_cover, 'cover')
 
+        # 根据激光点距离，切割图片，缩小分割范围
+        # 图片块尺寸由小到大
         crop_params = [2, 3, 4]
         for j, n_crop in enumerate(crop_params):
-
-            # step3: 根据激光点距离，切割图片
             im_patch = laser.crop_image(im_cover, n_dis_w=n_crop)
             patch_h, patch_w, _ = im_patch.shape
 
@@ -83,9 +84,9 @@ def measure_tree_width(image_path_list):
 
             # step4: 分割树干
             if max(im_patch.shape[0], im_patch.shape[1]) > NET_MAX_WIDTH:
+                result.set_info(InfoEnum.STAND_TOO_CLOSE)
                 if DEBUG:
                     print('[ ERROR ] Image is too large to segmented. Move further away from target.')
-                result.set_info(InfoEnum.STAND_TOO_CLOSE)
                 break
 
             show_img, trunk_mask = segment_trunk_int(im_patch, laser.positive_pts(), None, im_id=seg_count)
@@ -105,19 +106,17 @@ def measure_tree_width(image_path_list):
 
             if not trunk.is_seg_succ():
                 result.set_info(InfoEnum.TRUNK_EDGE_UNCLEAR)
-
                 if DEBUG:
                     print(InfoEnum.TRUNK_EDGE_UNCLEAR)
                 continue
             else:
-                # step6: 计算拍摄距离
+                # 计算拍摄距离
                 RP_ratio = laser.RP_ratio()
                 shot_distance = laser.shot_distance()
                 trunk_width, seg_conf, patch_trunk_corners = trunk.real_width_v2(shot_distance, RP_ratio)
                 if trunk_width > 0:
                     conf = seg_conf * pt_conf
-
-                    # 图片分块坐标 -> 原始图片坐标
+                    # 图片块坐标 -> 原始图片坐标
                     trunk_left_top = laser.recover_coordinate(patch_trunk_corners['left_top'], n_dis_w=n_crop)
                     trunk_right_top = laser.recover_coordinate(patch_trunk_corners['right_top'], n_dis_w=n_crop)
                     trunk_left_bottom = laser.recover_coordinate(patch_trunk_corners['left_bottom'], n_dis_w=n_crop)
@@ -171,8 +170,8 @@ if __name__ == '__main__':
     list_path = args.input
     image_list = load_image_list(list_path)
 
-    results = measure_tree_width(image_list)
-    print(results)
+    output = measure_tree_width(image_list)
+    print(output)
 
-    # save_path = args.output
-    # save_results(output, save_path)
+    save_path = args.output
+    save_results(output, save_path)

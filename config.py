@@ -1,8 +1,5 @@
 # coding: utf-8
-TAG_WIDTH = 27          # mm
-TAG_HEIGHT = 91         # mm
 POINT_DISTANCE = 120    # mm
-
 ORG_IM_HEIGHT = 4000
 ORG_IM_WIDTH = 3000
 
