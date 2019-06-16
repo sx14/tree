@@ -1,5 +1,1 @@
-/media/sunx/Data/linux-workspace/python-workspace/tree/data/tree_flipped/0049.jpg
-/media/sunx/Data/linux-workspace/python-workspace/tree/data/tree_flipped/11059.jpg
-/media/sunx/Data/linux-workspace/python-workspace/tree/data/tree_flipped/11060.jpg
-/media/sunx/Data/linux-workspace/python-workspace/tree/data/tree_flipped/11061.jpg
-/media/sunx/Data/linux-workspace/python-workspace/tree/data/tree_flipped/11062.jpg
+/media/sunx/Data/dataset/tree-dataset/test/7.jpg

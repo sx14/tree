@@ -1,5 +1,17 @@
 import matplotlib.pyplot as plt
 import cv2
+import numpy as np
+
+
+def show_masked_image(im, mask, win_name='show'):
+    im_red = mask.astype(np.uint8)
+    im_red[im_red > 0] = 255
+
+    im_show = im.copy().astype(np.uint8)
+    im_show = im_show / 2
+    im_red = im_red / 2
+    im_show[:, :, 1] = im_show[:, :, 1] + im_red
+    show_image(im_show, win_name)
 
 
 def show_image(im, win_name='show'):

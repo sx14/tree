@@ -1,13 +1,15 @@
 # coding: utf-8
-from det.trunk.seg_trunk import *
-from det.trunk.cal_trunk import *
+import os
+# from det.trunk.seg_trunk import *
+# from det.trunk.cal_trunk import *
 from det.laser.seg_laser_dev import *
 from det.laser.laser import *
 from util.show_image import *
 from util.resize_image import *
 import argparse
 
-DEBUG = False
+DEBUG = True
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def parse_args():
@@ -19,9 +21,9 @@ def parse_args():
 
 
 def measure_tree_width(img_path_list):
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
     results = []
-    count = 0
+    seg_count = 0
+
     for i, im_path in enumerate(sorted(img_path_list)):
 
         result = {
@@ -44,10 +46,11 @@ def measure_tree_width(img_path_list):
         im = resize_image(im)
 
         # step1 获得激光点对位置，激光点mask，激光mask，激光得分
-        pt_pair, pt_mask, laser_mask, pt_conf = get_laser_points(im)
+        pt_pair, pt_mask, laser_mask, pt_conf = get_laser_points(im, True)
 
         if DEBUG:
             show_images([im, laser_mask, pt_mask])
+            pass
 
         if len(pt_pair) != 2:
             result['width'] = -1
@@ -59,6 +62,7 @@ def measure_tree_width(img_path_list):
         else:
             if DEBUG:
                 print('Laser point pair detection success.')
+                pass
 
         # 在结果中保存激光点坐标
         laser = Laser(pt_pair, pt_mask, laser_mask)
@@ -102,8 +106,8 @@ def measure_tree_width(img_path_list):
                 result['info'] = 'Stand too close to tree.'
                 break
 
-            show_img, trunk_mask = segment_trunk_int(im_patch, laser.positive_pts(), bg_mask, im_id=count)
-            count += 1
+            show_img, trunk_mask = segment_trunk_int(im_patch, laser.positive_pts(), bg_mask, im_id=seg_count)
+            seg_count += 1
 
             if DEBUG:
                 show_images([show_img, trunk_mask], 'segment')
