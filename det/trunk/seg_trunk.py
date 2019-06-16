@@ -165,8 +165,10 @@ def segment_trunk_int(im, pos_pts, pr_bg_mask=None, im_id=0, user_id=0):
     mask = np.zeros(im.shape[:2]).astype(np.uint8)
     for i in range(len(pts)):
         mask = our_func_sunx(user_id, im_id, im, i, pns[i], pts[i])
+
     mask[mask > 0] = 255
     mask = get_center_connected_component(mask)
+
     show_img = im * mask[:, :, np.newaxis]
     show_img[mask == 0, :] = 0
     mask[mask > 0] = 255

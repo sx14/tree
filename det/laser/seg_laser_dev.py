@@ -95,12 +95,14 @@ def get_laser_mask(im, dilate=False, show=False, use_hsv=True):
 def get_laser_points(im, show=False):
     """
     获取激光点坐标
-    :param im: 原图
+    :param im:      原图
+    :param show:    是否可视化中间结果（debug only）
     :return:
         pt_pair:    激光点对坐标
         pt_mask:    激光点255掩码
         laser_mask: 激光255掩码
         pt_score:   激光点置信度
+
     """
     # 只保留中心区域
     cleaned_im = clean_image(im)
@@ -130,6 +132,7 @@ def segment_laser_points(im, use_bright=False, show=False):
     分割激光点
     :param im:          清理过的图像
     :param use_bright:  是否仅使用高亮区域作为激光点
+    :param show:        是否可视化中间结果（debug only）
     :return:
         pt_pair:    激光点对坐标
         pt_mask:    激光点255掩码
