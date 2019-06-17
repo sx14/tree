@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 
@@ -47,6 +46,7 @@ def show_images(ims, name='show'):
 
 
 def show_pts(im, pts):
+    import matplotlib.pyplot as plt
     """Draw points"""
     fig, ax = plt.subplots(figsize=(12, 12))
     ax.imshow(im, aspect='equal')
