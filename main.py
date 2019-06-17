@@ -37,6 +37,10 @@ def measure_tree_width(image_path_list):
             print('-' * 30)
             print('[%d/%d]: %s' % (image_num, i + 1, im_path.split('/')[-1]))
 
+        if not os.path.exists(im_path):
+            result.set_info(InfoEnum.IMAGE_NOT_EXIST)
+            continue
+
         im = cv2.imread(im_path)    # 加载图片
         im = resize_image(im)       # 调整尺寸
 

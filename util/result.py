@@ -6,6 +6,7 @@ class _InfoEnum:
         self.LASER_DET_FAILED = 'Laser point detection failed.'
         self.STAND_TOO_CLOSE = 'Stand too close to tree.'
         self.TRUNK_EDGE_UNCLEAR = 'Trunk edges are not clear.'
+        self.IMAGE_NOT_EXIST = 'Image not exist.'
         self.SUCCESS = 'Success.'
 
 
