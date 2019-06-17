@@ -305,6 +305,6 @@ class Trunk:
             beta = math.atan(M / shot_distance)
             sin_beta = math.sin(beta)
             width = shot_distance * sin_beta / (1 - sin_beta)
-            return M-1.0, conf, trunk_corners
+            return M, conf, trunk_corners
         else:
             return -1, -1, None

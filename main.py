@@ -159,7 +159,7 @@ def measure_all(image_path_list):
                     result.set_trunk_right_bottom(trunk_right_bottom)
                     result.set_info(InfoEnum.SUCCESS)
 
-                    if True:
+                    if DEBUG:
                         print('Trunk width: %.2f CM (%.2f).' % (trunk_width / 10.0, conf))
                         pts = [laser_bottom_pt, laser_top_pt,
                                trunk_left_top, trunk_left_bottom,
