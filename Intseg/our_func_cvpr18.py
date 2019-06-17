@@ -196,7 +196,7 @@ def our_func_sunx(usrId, imIdx, im, cnt, pn, clk):
         network=build(input,sz)
 
     saver = tf.train.Saver(var_list=[var for var in tf.trainable_variables() if var.name.startswith('g_')])
-    sess.run(tf.initialize_all_variables())
+    sess.run(tf.global_variables_initializer())
 
     ckpt=tf.train.get_checkpoint_state("Models/ours_cvpr18")
     if ckpt:
