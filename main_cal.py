@@ -2,7 +2,7 @@
 import os
 from det.common.geo_utils import euc_dis, angle
 from det.trunk.cal_trunk import Edge
-from det.laser.seg_laser_dev import get_laser_points
+from det.laser.seg_laser import get_laser_points
 from det.laser.laser import Laser
 from util.resize_image import *
 from util.result import Result, InfoEnum

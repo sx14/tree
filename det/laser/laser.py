@@ -64,7 +64,7 @@ class Laser:
         else:
             return None
 
-    def cover_laser(self, im):
+    def cover_laser(self, im, has_laser_line=True):
         # 用图像块覆盖
         im_copy = im.copy()
         im_h, im_w, _ = im.shape
@@ -77,16 +77,17 @@ class Laser:
         pt2 = sorted(self.pt_pair, key=lambda pt: pt[1])[1]
         center_x = int((pt1[0] + pt2[0]) / 2.0)
         center_y = int((pt1[1] + pt2[1]) / 2.0)
-        pt_center = [center_x, center_y]
-        # 覆盖两点和线
-        pts = [pt1, pt_center]
+        pts = [pt1]
 
-        # 线可能不在正中，搜索多点
-        line_search_step = 2
-        ymin = min(pt1[1], pt2[1]) + line_search_step
-        ymax = max(pt1[1], pt2[1]) - line_search_step
-        pts_near_center = [[center_x, y] for y in range(int(ymin), int(ymax), line_search_step)]
-        pts += pts_near_center
+        if has_laser_line:
+            # 线在两点之间，搜索多点
+            pt_center = [center_x, center_y]
+            pts.append(pt_center)
+            line_search_step = 2
+            ymin = min(pt1[1], pt2[1]) + line_search_step
+            ymax = max(pt1[1], pt2[1]) - line_search_step
+            pts_near_center = [[center_x, y] for y in range(int(ymin), int(ymax), line_search_step)]
+            pts += pts_near_center
 
         pts.append(pt2)
 

@@ -17,10 +17,16 @@ def show_image(im, win_name='show'):
     im_w = im.shape[1]
     ratio = 800.0 / im_h
 
+    if len(im.shape) == 2:
+        im_show = im.copy()
+        im_show[im_show > 0] = 255
+    else:
+        im_show = im
+
     cv2.namedWindow(win_name, 0)
     cv2.resizeWindow(win_name, int(im_w * 1.0 * ratio), int(im_h * 1.0 * ratio))
     cv2.moveWindow(win_name, 200, 200)
-    cv2.imshow(win_name, im)
+    cv2.imshow(win_name, im_show)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
@@ -35,10 +41,16 @@ def show_images(ims, name='show'):
         im_w = im.shape[1]
         ratio = 800.0 / im_h
 
+        if len(im.shape) == 2:
+            im_show = im.copy()
+            im_show[im_show > 0] = 255
+        else:
+            im_show = im
+
         cv2.namedWindow(win_name, 0)
         cv2.resizeWindow(win_name, int(im_w * 1.0 * ratio), int(im_h * 1.0 * ratio))
         cv2.moveWindow(win_name, left_top_x, 0)
-        cv2.imshow(win_name, im)
+        cv2.imshow(win_name, im_show)
         left_top_x += int(im_w * 1.0 * ratio)
 
     cv2.waitKey(0)
@@ -54,9 +66,9 @@ def show_pts(im, pts):
 
         pt = pts[i]
         ax.add_patch(
-            plt.Rectangle((pt[0]-1, pt[1]-1),
-                          3,
-                          3, fill=True,
+            plt.Rectangle((pt[0]-3, pt[1]-3),
+                          5,
+                          5, fill=True,
                           edgecolor=[255.0/255, 20.0/255, 147.0/255], linewidth=1))
     plt.axis('off')
     plt.tight_layout()

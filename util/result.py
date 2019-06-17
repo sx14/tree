@@ -11,7 +11,7 @@ class _InfoEnum:
         # self.SUCCESS = 'Success.'
 
         self.LASER_DET_FAILED = 'LASER_DET_FAILED'
-        self.STAND_TOO_CLOSE = 'STAND_TOO_CLOSE'
+        self.TRUNK_TOO_THICK = 'TRUNK_TOO_THICK'
         self.TRUNK_EDGE_UNCLEAR = 'TRUNK_EDGE_UNCLEAR'
         self.IMAGE_NOT_EXIST = 'IMAGE_NOT_EXIST'
         self.BAD_MANUAL_ANNO = 'BAD_MANUAL_ANNO'

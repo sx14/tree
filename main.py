@@ -7,7 +7,7 @@ import numpy as np
 
 from det.trunk.seg_trunk import segment_trunk_int
 from det.trunk.cal_trunk import Trunk
-from det.laser.seg_laser_dev import get_laser_points, NET_MAX_WIDTH
+from det.laser.seg_laser import get_laser_points, NET_MAX_WIDTH
 from det.laser.laser import Laser
 from util.resize_image import resize_image_with_ratio, recover_coordinate
 from util.result import Result, InfoEnum
@@ -54,8 +54,8 @@ def measure_all(image_path_list):
             result.set_info(InfoEnum.IMAGE_NOT_EXIST)
             continue
 
-        im_org = cv2.imread(im_path)    # 加载图片
-        im, resize_ratio = resize_image_with_ratio(im_org)       # 调整尺寸
+        im_org = cv2.imread(im_path)                        # 加载图片
+        im, resize_ratio = resize_image_with_ratio(im_org)  # 调整尺寸
 
         # step1: 获得激光点对位置，激光点mask，激光mask，激光得分
         pt_pair, pt_mask, laser_mask, pt_conf = get_laser_points(im, DEBUG)
@@ -71,7 +71,7 @@ def measure_all(image_path_list):
             continue
         else:
             if DEBUG:
-                print('Laser point pair detection success.')
+                print('Laser point detection success.')
                 pass
 
         laser = Laser(pt_pair, pt_mask, laser_mask)
@@ -85,7 +85,7 @@ def measure_all(image_path_list):
 
         # step2: 覆盖激光区域
         # TODO: 设备修改后，不需要覆盖激光线
-        im_cover = laser.cover_laser(im)
+        im_cover = laser.cover_laser(im, has_laser_line=True)
 
         if DEBUG:
             show_image(im_cover, 'cover')
@@ -106,15 +106,15 @@ def measure_all(image_path_list):
                 # 待分割的目标图像块尺寸太大
                 result.set_info(InfoEnum.STAND_TOO_CLOSE)
                 if DEBUG:
-                    print('[ ERROR ] Image is too large to segmented. Move further away from target.')
+                    print('[ ERROR ] Trunk is too thick.')
                 break
 
             # 交互式分割
-            show_img, trunk_mask = segment_trunk_int(im_patch, laser.positive_pts(), None, im_id=seg_count)
+            trunk_mask = segment_trunk_int(im_patch, laser.positive_pts(), None, im_id=seg_count)
             seg_count += 1
 
             if DEBUG:
-                show_images([show_img, trunk_mask], 'segment')
+                show_images([im, trunk_mask], 'segment')
                 # cv2.imwrite('im_crop.jpg', im)
                 # cv2.imwrite('trunk_mask.png', trunk_mask)
 
