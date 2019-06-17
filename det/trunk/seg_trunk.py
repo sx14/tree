@@ -1,7 +1,10 @@
 # coding: utf-8
 import os
 import shutil
+
+import cv2
 import numpy as np
+
 from util.show_image import *
 from Intseg.our_func_cvpr18 import our_func_sunx
 

@@ -3,11 +3,20 @@
 
 class _InfoEnum:
     def __init__(self):
-        self.LASER_DET_FAILED = 'Laser point detection failed.'
-        self.STAND_TOO_CLOSE = 'Stand too close to tree.'
-        self.TRUNK_EDGE_UNCLEAR = 'Trunk edges are not clear.'
-        self.IMAGE_NOT_EXIST = 'Image not exist.'
-        self.SUCCESS = 'Success.'
+        # self.LASER_DET_FAILED = 'Laser point detection failed.'
+        # self.STAND_TOO_CLOSE = 'Stand too close to tree.'
+        # self.TRUNK_EDGE_UNCLEAR = 'Trunk edges are not clear.'
+        # self.IMAGE_NOT_EXIST = 'Image not exist.'
+        # self.BAD_MANUAL_ANNO = 'Bad manual annotation.'
+        # self.SUCCESS = 'Success.'
+
+        self.LASER_DET_FAILED = 'LASER_DET_FAILED'
+        self.STAND_TOO_CLOSE = 'STAND_TOO_CLOSE'
+        self.TRUNK_EDGE_UNCLEAR = 'TRUNK_EDGE_UNCLEAR'
+        self.IMAGE_NOT_EXIST = 'IMAGE_NOT_EXIST'
+        self.BAD_MANUAL_ANNO = 'BAD_MANUAL_ANNO'
+        self.SUCCESS = 'SUCCESS'
+
 
 
 InfoEnum = _InfoEnum()
@@ -23,6 +32,7 @@ class Result:
 
     def __init__(self):
 
+        # keys
         # 基本结果
         self._WIDTH = 'width'
         self._CONF = 'conf'
@@ -38,6 +48,7 @@ class Result:
         self._LASER_TOP = 'laser_top'
         self._LASER_BOTTOM = 'laser_bottom'
 
+        # key-value
         self._result = {
             self._WIDTH: -1,
             self._CONF: -1,

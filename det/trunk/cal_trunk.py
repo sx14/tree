@@ -1,5 +1,7 @@
 # coding: utf-8
+import cv2
 from scipy.optimize import curve_fit
+
 from det.common.det_edge import *
 from det.common.geo_utils import *
 
@@ -11,35 +13,8 @@ class Trunk:
         h, w = self.contour_mask.shape
         self.contour_mask = self.contour_mask[4:h - 4, :]
 
-    def _get_edge_pts(self, sub_mask):
-        ys, xs = np.where(sub_mask > 0)
-        return [[xs[i], ys[i]] for i in range(len(xs))]
-
-    def _get_edge_pts1(self, sub_mask):
-        ys, xs = np.where(sub_mask > 0)
-        pts = [[xs[i], ys[i]] for i in range(len(xs))]
-        pts = sorted(pts, key=lambda a: (a[1], a[0]))
-        if len(pts) == 0:
-            return None, None
-
-        PROTECT_COUNT = 30000
-        cnt = 0
-        l_pts = []
-        l_pt_ind = 0
-        while l_pt_ind >= 0 and cnt < PROTECT_COUNT:
-            cnt += 1
-            l_pt = pts[l_pt_ind]
-            l_pts.append(l_pt)
-            pts.pop(l_pt_ind)
-            l_pt_ind = -1
-            for i, pt in enumerate(pts):
-                if eight_connected(pt, l_pt):
-                    l_pt_ind = i
-                    break
-        r_pts = pts
-        return l_pts, r_pts
-
-    def _get_edge_pts2(self, sub_mask):
+    @staticmethod
+    def _get_edge_pts(sub_mask):
         ys, xs = np.where(sub_mask > 0)
         pts = [[xs[i], ys[i]] for i in range(len(xs))]
         if len(pts) == 0:
@@ -67,39 +42,72 @@ class Trunk:
         r_pts = pts
         return l_pts, r_pts
 
-    def _width(self, normal_line, left_pts, right_pts):
+    @staticmethod
+    def _width(normal_line, left_pts, right_pts):
+        """
+        .   .
+        .   .
+        .   .
+        .----.
+        .     .
+        left_pts上应该存在一点A在normal_line上
+        right_pts上应该存在一点B在normal_line上
+        计算点A和B的欧式距离
+
+        :param normal_line: 直线一般式
+        :param left_pts:    左侧点集
+        :param right_pts:   右侧点集
+        :return: 点A和点B的欧式距离
+        """
         A,B,C = normal_line
         left_pt = None
         right_pt = None
-        left_diff = float('+Inf')
-        right_diff = float('+Inf')
+        left_diff_min = float('+Inf')
+        right_diff_min = float('+Inf')
         for pt in left_pts:
             x, y = pt
             diff = abs(A*x+B*y+C)
-            if diff < 1 and diff < left_diff:
+            if diff < 1 and diff < left_diff_min:
                 # pt on line
                 left_pt = pt
-                left_diff = diff
+                left_diff_min = diff
         for pt in right_pts:
             x, y = pt
             diff = abs(A*x+B*y+C)
-            if diff < 1 and diff < right_diff:
+            if diff < 1 and diff < right_diff_min:
                 # pt on line
                 right_pt = pt
-                right_diff = diff
+                right_diff_min = diff
         if left_pt is not None and right_pt is not None:
             return euc_dis(left_pt, right_pt)
         else:
             return None
 
-    def _fit_edge(self, pts, y_max, y_min=0):
-        # 拟合的直线近似垂直于x轴，因此:
-        # x=y*k+b
+    @staticmethod
+    def _fit_edge(pts, y_max, y_min=0):
+        """
+        对点集拟合直线段
+
+        待拟合的直线近似垂直于x轴，因此:
+        x=y*k+b
+        :param pts: 点集合
+        :param y_max: 直线段上端点坐标y
+        :param y_min: 直线段下端点坐标y
+        :return: 直线段Edge
+        """
+
         def line_func(y, k, b):
             return y * k + b
         # fit left edge
         pt_xs = [pt[0] for pt in pts]
         pt_ys = [pt[1] for pt in pts]
+
+        # x_diffs = [abs(x-pt_xs[0]) for x in pt_xs]
+        # if sum(x_diffs) == 0:
+        #     # pts的x坐标完全相同，避免curve_fit警告
+        #     pts = sorted(pts, key=lambda pt: pt[1])
+        #     return Edge(pts[0], pts[-1])
+
         k, b = curve_fit(line_func, pt_ys, pt_xs)[0]
         # print('x = %.2fy + %.2f' % (k, b))
         pt_bot = [y_min*k+b, y_min]
@@ -110,12 +118,12 @@ class Trunk:
     def _patch_width(self, sub_mask):
         h, w = sub_mask.shape
 
-        l_pts, r_pts = self._get_edge_pts2(sub_mask)
-        l_pts = sorted(l_pts, key=lambda pt: (pt[1], pt[0]))
-        r_pts = sorted(r_pts, key=lambda pt: (pt[1], pt[0]))
-
+        l_pts, r_pts = self._get_edge_pts(sub_mask)
         if len(l_pts) < 2 or len(r_pts) < 2:
             return None, None
+
+        l_pts = sorted(l_pts, key=lambda pt: (pt[1], pt[0]))
+        r_pts = sorted(r_pts, key=lambda pt: (pt[1], pt[0]))
 
         l_line = self._fit_edge(l_pts, h)
         r_line = self._fit_edge(r_pts, h)
@@ -123,7 +131,7 @@ class Trunk:
         l_error = line_estimate_error(l_line.normal(), l_pts)
         r_error = line_estimate_error(r_line.normal(), r_pts)
         # print('L(%.2f) | R(%.2f)' % (l_error, r_error))
-        if l_error > 3 or r_error > 3:
+        if l_error is None or r_error is None or l_error > 3 or r_error > 3:
             return None, None
 
         corners = {
@@ -191,7 +199,7 @@ class Trunk:
             return False
 
         # 获取两条边缘上的点
-        l_pts, r_pts = self._get_edge_pts2(self.contour_mask)
+        l_pts, r_pts = self._get_edge_pts(self.contour_mask)
         if len(l_pts) < 2 or len(r_pts) < 2:
             return False
 
@@ -240,6 +248,8 @@ class Trunk:
         # 333333
         for i in range(n_patch):
             # 对每一块
+            if i == 2:
+                a = 1
             sub_mask = self.contour_mask[int(i*interval_y):int((i+1)*interval_y), :]
             patch_width, sub_patch_corners = self._patch_width(sub_mask)
             if patch_width is not None:

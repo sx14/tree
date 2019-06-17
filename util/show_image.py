@@ -1,8 +1,6 @@
-import cv2
-import numpy as np
-
 
 def show_masked_image(im, mask, win_name='show'):
+    import numpy as np
     im_red = mask.astype(np.uint8)
     im_red[im_red > 0] = 255
 
@@ -14,6 +12,7 @@ def show_masked_image(im, mask, win_name='show'):
 
 
 def show_image(im, win_name='show'):
+    import cv2
     im_h = im.shape[0]
     im_w = im.shape[1]
     ratio = 800.0 / im_h
@@ -27,6 +26,7 @@ def show_image(im, win_name='show'):
 
 
 def show_images(ims, name='show'):
+    import cv2
     left_top_x = 0
 
     for i, im in enumerate(ims):

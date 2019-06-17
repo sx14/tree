@@ -1,17 +1,15 @@
 # coding: utf-8
 POINT_DISTANCE = 120    # mm
-ORG_IM_HEIGHT = 4000
-ORG_IM_WIDTH = 3000
+ORG_IM_HEIGHT = 4000    # pixel
+ORG_IM_WIDTH = 3000     # pixel
 
 # 注意：
 # 如果改变IMG_MAX_HEIGHT，FOCAL_LENGTH需要重新估计
 # 估计FOCAL_LENGTH: 运行 prepare/camera.py
-# IMG_MAX_HEIGHT = 800    # pixel
-# FOCAL_LENGTH = 697      # pixel
-
 
 IMG_MAX_HEIGHT = 800        # pixel
 FOCAL_LENGTH = 591          # pixel
+
 
 # IMG_MAX_HEIGHT = 2000
 # FOCAL_LENGTH = -1

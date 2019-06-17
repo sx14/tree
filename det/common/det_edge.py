@@ -1,6 +1,9 @@
 # coding: utf-8
 import math
+
+import cv2
 import numpy as np
+
 from util.show_image import *
 from det.common.geo_utils import euc_dis
 
