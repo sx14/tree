@@ -165,6 +165,8 @@ def load_image_list(image_list_path):
 
 def save_results(results, save_path):
     import json
+    if save_path is None:
+        return
     with open(save_path, 'w') as f:
         json.dump(results, f)
 
@@ -177,5 +179,5 @@ if __name__ == '__main__':
     output = measure_tree_width(image_list)
     print(output)
 
-    save_path = args.output
-    save_results(output, save_path)
+    # save_path = args.output
+    # save_results(output, save_path)
