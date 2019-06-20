@@ -106,7 +106,7 @@ def get_laser_points(im, show=False):
         # 高亮区域查找激光点失败
         # 降级，仅使用红色激光区域
         pt_pair, pt_mask, laser_mask, pt_score = segment_laser_points(cleaned_im, use_bright=False, show=show)
-        pt_score *= 0.5
+        pt_score *= 0.6
 
     # TODO: 没有激光线后，注释掉下两行
     laser_mask = get_laser_mask(cleaned_im, dilate=False, use_hsv=False, show=False)
@@ -138,7 +138,7 @@ def segment_laser_points(im, use_bright=False, show=False):
     laser_mask[laser_mask > 0] = 1
 
     if show:
-        show_image(laser_mask, 'show')
+        visualize_image(laser_mask, 'show')
 
     # 找激光点对
     _, pt_label_mat, stats, centroids = cv2.connectedComponentsWithStats(laser_mask)

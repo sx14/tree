@@ -1,5 +1,5 @@
 
-def show_masked_image(im, mask, win_name='show'):
+def show_masked_image(im, mask, win_name='show', show=False):
     import numpy as np
     im_red = mask.astype(np.uint8)
     im_red[im_red > 0] = 255
@@ -8,11 +8,12 @@ def show_masked_image(im, mask, win_name='show'):
     im_show = im_show / 2
     im_red = im_red / 2
     im_show[:, :, 1] = im_show[:, :, 1] + im_red
-    show_image(im_show, win_name)
+    visualize_image(im_show, win_name, show=show)
 
 
-def show_image(im, win_name='show'):
+def visualize_image(im, name='temp', im_id='temp', show=False):
     import cv2
+
     im_h = im.shape[0]
     im_w = im.shape[1]
     ratio = 800.0 / im_h
@@ -23,12 +24,25 @@ def show_image(im, win_name='show'):
     else:
         im_show = im
 
-    cv2.namedWindow(win_name, 0)
-    cv2.resizeWindow(win_name, int(im_w * 1.0 * ratio), int(im_h * 1.0 * ratio))
-    cv2.moveWindow(win_name, 200, 200)
-    cv2.imshow(win_name, im_show)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    if show:
+        cv2.namedWindow(name, 0)
+        cv2.resizeWindow(name, int(im_w * 1.0 * ratio), int(im_h * 1.0 * ratio))
+        cv2.moveWindow(name, 200, 200)
+        cv2.imshow(name, im_show)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    else:
+        import os
+        from config import TEMP_PATH
+        save_dir = os.path.join(TEMP_PATH, im_id)
+        if im_show.shape == 2:
+            suffix = 'png'
+        else:
+            suffix = 'jpg'
+        if os.path.exists(save_dir):
+            cv2.imwrite(os.path.join(save_dir, name + '.' + suffix), im_show)
+        else:
+            os.mkdir(save_dir)
 
 
 def show_images(ims, name='show'):
@@ -57,19 +71,14 @@ def show_images(ims, name='show'):
     cv2.destroyAllWindows()
 
 
-def show_pts(im, pts):
-    import matplotlib.pyplot as plt
-    """Draw points"""
-    fig, ax = plt.subplots(figsize=(12, 12))
-    ax.imshow(im, aspect='equal')
-    for i in range(0, len(pts)):
+def show_pts(im, pts, name='final', im_id='0', show=False):
+    h, w, _ = im.shape
+    for pt in pts:
+        x, y = pt
+        box_xmin = max(0, x-8)
+        box_ymin = max(0, y-8)
+        box_xmax = min(x+8, w)
+        box_ymax = min(y+8, h)
+        im[box_ymin:box_ymax, box_xmin:box_xmax] = [147, 20, 255]
 
-        pt = pts[i]
-        ax.add_patch(
-            plt.Rectangle((pt[0]-3, pt[1]-3),
-                          5,
-                          5, fill=True,
-                          edgecolor=[255.0/255, 20.0/255, 147.0/255], linewidth=1))
-    plt.axis('off')
-    plt.tight_layout()
-    plt.show()
+    visualize_image(im, name=name, im_id = im_id, show=show)

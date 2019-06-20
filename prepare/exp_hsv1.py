@@ -17,6 +17,6 @@ red2_test = [0, 100, 173]
 patch = np.zeros((500,500,3)).astype(np.uint8)
 patch[:,:] = red2_test
 im = cv2.cvtColor(patch, cv2.COLOR_HSV2BGR)
-show_image(im, '')
+visualize_image(im, '')
 
 

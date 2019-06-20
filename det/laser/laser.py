@@ -18,27 +18,20 @@ class Laser:
         self.laser_mask = laser_mask
         self.CAMERA_FOCAL_LEN = FOCAL_LENGTH
         self.POINT_DISTANCE = POINT_DISTANCE
+        self.crop_box = None
 
-    def get_top_pt(self, org=True):
-        if org:
-            pt1 = self.org_pt_pair[0]
-            pt2 = self.org_pt_pair[1]
-        else:
-            pt1 = self.pt_pair[0]
-            pt2 = self.pt_pair[1]
+    def get_top_pt(self):
+        pt1 = self.pt_pair[0]
+        pt2 = self.pt_pair[1]
 
         if pt1[1] < pt2[1]:
             return pt1
         else:
             return pt2
 
-    def get_bottom_pt(self, org=True):
-        if org:
-            pt1 = self.org_pt_pair[0]
-            pt2 = self.org_pt_pair[1]
-        else:
-            pt1 = self.pt_pair[0]
-            pt2 = self.pt_pair[1]
+    def get_bottom_pt(self):
+        pt1 = self.pt_pair[0]
+        pt2 = self.pt_pair[1]
 
         if pt1[1] > pt2[1]:
             return pt1
@@ -133,28 +126,32 @@ class Laser:
         crop_xmin = int(np.maximum(crop_center_x - crop_w / 2, 0))
         crop_xmax = int(np.minimum(crop_center_x + crop_w / 2, im_w))
 
+        self.crop_box = {
+            'xmin': crop_xmin,
+            'ymin': crop_ymin,
+            'xmax': crop_xmax,
+            'ymax': crop_ymax
+        }
+
         im_patch = im[crop_ymin: crop_ymax + 1, crop_xmin: crop_xmax + 1, :]
 
         # 更新激光点的坐标
-        pt1 = self.pt_pair[0]
-        pt2 = self.pt_pair[1]
-        pt1[0] = pt1[0] - crop_xmin
-        pt1[1] = pt1[1] - crop_ymin
-        pt2[0] = pt2[0] - crop_xmin
-        pt2[1] = pt2[1] - crop_ymin
+        # pt1 = self.pt_pair[0]
+        # pt2 = self.pt_pair[1]
+        # pt1[0] = pt1[0] - crop_xmin
+        # pt1[1] = pt1[1] - crop_ymin
+        # pt2[0] = pt2[0] - crop_xmin
+        # pt2[1] = pt2[1] - crop_ymin
 
         return im_patch
 
-    def recover_coordinate(self, pt, n_dis_w=3, n_dis_h=2):
-        pt_dis = self.point_pixel_dis()
-
-        crop_center_x = (self.org_pt_pair[0][0] + self.org_pt_pair[1][0]) / 2.0
-        crop_center_y = (self.org_pt_pair[0][1] + self.org_pt_pair[1][1]) / 2.0
-        crop_w = pt_dis * n_dis_w
-        crop_h = pt_dis * n_dis_h
-
-        crop_ymin = int(np.maximum(crop_center_y - crop_h / 2, 0))
-        crop_xmin = int(np.maximum(crop_center_x - crop_w / 2, 0))
+    def recover_coordinate(self, pt):
+        if self.crop_box is not None:
+            crop_ymin = self.crop_box['ymin']
+            crop_xmin = self.crop_box['xmin']
+        else:
+            crop_ymin = 0
+            crop_xmin = 0
 
         org_x = pt[0] + crop_xmin
         org_y = pt[1] + crop_ymin
@@ -164,6 +161,13 @@ class Laser:
         pt_dis = self.point_pixel_dis()
         pt1 = self.pt_pair[0]
         pt2 = self.pt_pair[1]
+
+        if self.crop_box is not None:
+            pt1[0] = pt1[0] - self.crop_box['xmin']
+            pt1[1] = pt1[1] - self.crop_box['ymin']
+            pt2[0] = pt2[0] - self.crop_box['xmin']
+            pt2[1] = pt2[1] - self.crop_box['ymin']
+
         if pt1[1] < pt2[1]:
             pt_up = pt1
             pt_dn = pt2

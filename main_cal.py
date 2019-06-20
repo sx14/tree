@@ -15,8 +15,9 @@ DEBUG = False
 
 def parse_args():
     parser = argparse.ArgumentParser(description='TreeMeasure V1.1')
-    parser.add_argument('-i', '--input', help='Please provide input json path.', required=True, type=str)
-    parser.add_argument('-o', '--output', help='Please provide output file path.', type=str)
+    parser.add_argument('-i', '--image_path',   help='Please provide image path.',          required=True)
+    parser.add_argument('-p', '--points',       help='Please provide annotation points.',   required=True)
+    parser.add_argument('-o', '--output',       help='Please provide output file path.',    default='None')
     args = parser.parse_args()
     return args
 
@@ -93,6 +94,28 @@ def measure_tree_width(image_path, trunk_corners):
     return result
 
 
+def parse_points(raw_points):
+    # x1,y1,x2,y2,x3,y3,x4,y4
+    raw_values = raw_points.split(',')
+    values = [int(raw_v) for raw_v in raw_values]
+    trunk_corners = None
+    if len(raw_values) == 8:
+        points = []
+        for i in range(4):
+            points.append([values[i*2], values[i*2+1]])
+            # 先按y排序
+            points = sorted(points, key=lambda pt: pt[1])
+            # 再按x排序
+            top_pts = sorted(points[:2], key=lambda pt: pt[0])
+            bottom_pts = sorted(points[2:], key=lambda pt: pt[0])
+            trunk_corners = {
+                'left_top': top_pts[0],
+                'left_bottom': bottom_pts[0],
+                'right_top': top_pts[1],
+                'right_bottom': bottom_pts[1]}
+    return trunk_corners
+
+
 def load_input(input_path):
     image_path = None
     trunk_corners = None
@@ -113,17 +136,19 @@ def load_input(input_path):
                     'left_top': top_pts[0],
                     'left_bottom': bottom_pts[0],
                     'right_top': top_pts[1],
-                    'right_bottom': bottom_pts[1]
-                }
+                    'right_bottom': bottom_pts[1]}
     return image_path, trunk_corners
 
 
 if __name__ == '__main__':
     args = parse_args()
-    list_path = args.input
-    image_path, trunk_corners = load_input(list_path)
+    image_path = args.image_path
+    raw_points = args.points
+    trunk_corners = parse_points(raw_points)
     result = measure_tree_width(image_path, trunk_corners)
     print_json(result)
 
-    # save_path = args.output
-    # save_results(result, save_path)
+    output_path = args.output
+    if output_path != 'None':
+        save_path = args.output
+        save_results(result, save_path)

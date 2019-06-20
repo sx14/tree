@@ -36,3 +36,8 @@ def load_image_list(image_list_path):
         return image_paths
     else:
         return None
+
+
+def parse_image_list(raw_list):
+    image_paths = raw_list.split('\n')
+    return image_paths

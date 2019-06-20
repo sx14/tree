@@ -37,6 +37,7 @@ class Result:
         self._WIDTH = 'width'
         self._CONF = 'conf'
         self._INFO = 'info'
+        self._IMAGE_PATH = 'image_path'
 
         # 树干四角点
         self._LEFT_TOP = 'left_top'
@@ -50,6 +51,7 @@ class Result:
 
         # key-value
         self._result = {
+            self._IMAGE_PATH: None,
             self._WIDTH: -1,
             self._CONF: -1,
             self._INFO: 'Error is too large.',
@@ -60,6 +62,9 @@ class Result:
             self._LASER_TOP: None,
             self._LASER_BOTTOM: None
         }
+
+    def set_image_path(self, image_path):
+        self._result[self._IMAGE_PATH] = image_path
 
     def set_width(self, width):
         self._result[self._WIDTH] = width
