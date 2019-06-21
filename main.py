@@ -50,6 +50,7 @@ def measure_all(image_path_list):
     seg_count = 0           # 计数分割操作的次数
     all_results = []        # 保存所有结果
     image_num = len(image_path_list)
+    print(image_num)
 
     for i, im_path in enumerate(image_path_list):
         im_id = im_path.split('/')[-1][:-4]
@@ -185,6 +186,7 @@ def measure_all(image_path_list):
                         print('Error is too large.')
 
         all_results.append(result.get_result())
+
     output = {'results': all_results}
     return output
 
