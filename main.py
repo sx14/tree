@@ -3,12 +3,18 @@ import os
 import argparse
 
 import cv2
-import numpy as np
 
+import config
 from det.trunk.seg_trunk import segment_trunk_int
 from det.trunk.cal_trunk import Trunk
-from det.laser.seg_laser import get_laser_points, NET_MAX_WIDTH
-from det.laser.laser import Laser
+
+if config.CALIBRATOR == 'laser':
+    from det.calibrator.laser.seg_laser import get_laser_points as get_calibrator_points
+    from det.calibrator.laser.laser import Laser as Calibrator
+else:
+    from det.calibrator.tag.seg_tag import segment_tag as get_calibrator_points
+    from det.calibrator.tag.tag import BlueTag as Calibrator
+
 from util.resize_image import resize_image_with_ratio, recover_coordinate
 from util.result import Result, InfoEnum
 from util.show_image import *
@@ -61,7 +67,7 @@ def measure_all(image_path_list):
         im, resize_ratio = resize_image_with_ratio(im_org)  # 调整尺寸
 
         # step1: 获得激光点对位置，激光点mask，激光mask，激光得分
-        pt_pair, pt_mask, laser_mask, pt_conf = get_laser_points(im, False)
+        pt_pair, pt_mask, laser_mask, pt_conf = get_calibrator_points(im, False)
 
         if DEBUG:
             visualize_image(im, name='img', im_id=im_id)
@@ -78,18 +84,18 @@ def measure_all(image_path_list):
                 print('Laser point detection success.')
                 pass
 
-        laser = Laser(pt_pair, pt_mask, laser_mask)
+        calibrator = Calibrator(pt_pair, pt_mask, laser_mask)
 
         # 在结果中保存激光点坐标
         # resize坐标 -> 原始坐标
-        laser_top_pt = recover_coordinate(laser.get_top_pt(), resize_ratio)
-        laser_bottom_pt = recover_coordinate(laser.get_bottom_pt(), resize_ratio)
+        laser_top_pt = recover_coordinate(calibrator.get_top_pt(), resize_ratio)
+        laser_bottom_pt = recover_coordinate(calibrator.get_bottom_pt(), resize_ratio)
         result.set_laser_top(laser_top_pt)
         result.set_laser_bottom(laser_bottom_pt)
 
         # step2: 覆盖激光区域
         # TODO: 设备修改后，不需要覆盖激光线
-        im_cover = laser.cover_laser(im, has_laser_line=True)
+        im_cover = calibrator.cover_calibrator(im)
 
         if DEBUG:
             visualize_image(im_cover, 'img_cover', im_id=im_id)
@@ -98,7 +104,7 @@ def measure_all(image_path_list):
         # 图片块尺寸由小到大迭代尝试
         crop_params = [2, 3, 4]
         for j, n_crop in enumerate(crop_params):
-            im_patch = laser.crop_image(im_cover, n_dis_w=n_crop)
+            im_patch = calibrator.crop_image(im_cover, n_dis_w=n_crop)
             patch_h, patch_w, _ = im_patch.shape
 
             if DEBUG:
@@ -106,7 +112,7 @@ def measure_all(image_path_list):
                 visualize_image(im_patch, 'patch_%d' % n_crop, im_id=im_id)
 
             # step4: 分割树干
-            if max(im_patch.shape[0], im_patch.shape[1]) > NET_MAX_WIDTH:
+            if max(im_patch.shape[0], im_patch.shape[1]) > config.NET_MAX_WIDTH:
                 # 待分割的目标图像块尺寸太大
                 result.set_info(InfoEnum.STAND_TOO_CLOSE)
                 if DEBUG:
@@ -114,7 +120,7 @@ def measure_all(image_path_list):
                 break
 
             # 交互式分割
-            trunk_mask = segment_trunk_int(im_patch, laser.positive_pts(), None, im_id=seg_count)
+            trunk_mask = segment_trunk_int(im_patch, calibrator.positive_pts(), None, im_id=seg_count)
             seg_count += 1
 
             if DEBUG:
@@ -136,17 +142,17 @@ def measure_all(image_path_list):
                 continue
             else:
                 # 计算实际树径
-                RP_ratio = laser.RP_ratio()             # 缩放因子
-                shot_distance = laser.shot_distance()   # 拍摄距离
+                RP_ratio = calibrator.RP_ratio()             # 缩放因子
+                shot_distance = calibrator.shot_distance()   # 拍摄距离
                 trunk_width, seg_conf, patch_trunk_corners = trunk.real_width_v2(shot_distance, RP_ratio)
                 if trunk_width > 0:
                     # 置信度：分割置信度 x 激光点置信度
                     conf = seg_conf * pt_conf
                     # 图片块坐标 -> resize图片坐标
-                    trunk_left_top = laser.recover_coordinate(patch_trunk_corners['left_top'])
-                    trunk_right_top = laser.recover_coordinate(patch_trunk_corners['right_top'])
-                    trunk_left_bottom = laser.recover_coordinate(patch_trunk_corners['left_bottom'])
-                    trunk_right_bottom = laser.recover_coordinate(patch_trunk_corners['right_bottom'])
+                    trunk_left_top = calibrator.recover_coordinate(patch_trunk_corners['left_top'])
+                    trunk_right_top = calibrator.recover_coordinate(patch_trunk_corners['right_top'])
+                    trunk_left_bottom = calibrator.recover_coordinate(patch_trunk_corners['left_bottom'])
+                    trunk_right_bottom = calibrator.recover_coordinate(patch_trunk_corners['right_bottom'])
 
                     # resize坐标 -> 原图坐标
                     trunk_left_top = recover_coordinate(trunk_left_top, resize_ratio)

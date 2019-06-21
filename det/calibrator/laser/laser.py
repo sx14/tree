@@ -5,11 +5,13 @@ import numpy as np
 from config import *
 from util.show_image import *
 from det.common.geo_utils import *
+from det.calibrator.calibrator import Calibrator
 
 
-class Laser:
+class Laser(Calibrator):
 
     def __init__(self, pt_pair, pt_mask, laser_mask):
+        Calibrator.__init__(self, pt_pair, pt_mask)
         # pt_pair: [[x1,y1], [x2,y2]]
         assert len(pt_pair) == 2
         self.org_pt_pair = [[int(pt[0]), int(pt[1])] for pt in pt_pair]
@@ -57,7 +59,8 @@ class Laser:
         else:
             return None
 
-    def cover_laser(self, im, has_laser_line=True):
+    def cover_calibrator(self, im):
+        has_laser_line = True
         # 用图像块覆盖
         im_copy = im.copy()
         im_h, im_w, _ = im.shape
