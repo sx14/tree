@@ -21,7 +21,7 @@ from util.show_image import *
 from util.my_io import *
 
 
-DEBUG = True
+DEBUG = False
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
@@ -43,6 +43,8 @@ def measure_all(image_path_list):
 
     if image_path_list is None or len(image_path_list) == 0:
         # 输入不合法
+        if DEBUG:
+            print('Bad image path list.')
         return []
 
     seg_count = 0           # 计数分割操作的次数
