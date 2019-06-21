@@ -45,7 +45,7 @@ def measure_all(image_path_list):
         # 输入不合法
         if DEBUG:
             print('Bad image path list.')
-        return []
+        return {'results': []}
 
     seg_count = 0           # 计数分割操作的次数
     all_results = []        # 保存所有结果
@@ -76,7 +76,6 @@ def measure_all(image_path_list):
         if DEBUG:
             visualize_image(im, name='img', im_id=im_id)
             visualize_image(pt_mask, name='pt', im_id=im_id)
-            pass
 
         if len(pt_pair) != 2:
             result.set_info(InfoEnum.LASER_DET_FAILED)
@@ -86,7 +85,6 @@ def measure_all(image_path_list):
         else:
             if DEBUG:
                 print('Laser point detection success.')
-                pass
 
         calibrator = Calibrator(pt_pair, pt_mask, laser_mask)
 
@@ -178,9 +176,7 @@ def measure_all(image_path_list):
                                trunk_left_top, trunk_left_bottom,
                                trunk_right_top, trunk_right_bottom]
                         show_pts(im_org, pts, im_id=im_id)
-
-                    if conf > 0.1:
-                        break
+                    break
                 else:
                     result.set_info(InfoEnum.TRUNK_EDGE_UNCLEAR)
                     if DEBUG:
