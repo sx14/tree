@@ -10,11 +10,10 @@ from det.calibrator.calibrator import Calibrator
 
 class Laser(Calibrator):
 
-    def __init__(self, pt_pair, pt_mask, laser_mask):
-        Calibrator.__init__(self, pt_pair, pt_mask)
+    def __init__(self, pt_pair, pt_mask, pt_conf, laser_mask):
+        Calibrator.__init__(self, pt_mask, pt_conf)
         # pt_pair: [[x1,y1], [x2,y2]]
         assert len(pt_pair) == 2
-        self.org_pt_pair = [[int(pt[0]), int(pt[1])] for pt in pt_pair]
         self.pt_pair = [[int(pt[0]), int(pt[1])] for pt in pt_pair]
         self.pt_mask = pt_mask
         self.laser_mask = laser_mask
@@ -22,7 +21,7 @@ class Laser(Calibrator):
         self.POINT_DISTANCE = POINT_DISTANCE
         self.crop_box = None
 
-    def get_top_pt(self):
+    def _get_top_pt(self):
         pt1 = self.pt_pair[0]
         pt2 = self.pt_pair[1]
 
@@ -31,7 +30,7 @@ class Laser(Calibrator):
         else:
             return pt2
 
-    def get_bottom_pt(self):
+    def _get_bottom_pt(self):
         pt1 = self.pt_pair[0]
         pt2 = self.pt_pair[1]
 
@@ -116,9 +115,6 @@ class Laser(Calibrator):
         im_h, im_w, _ = im.shape
         pt_dis = self.point_pixel_dis()
 
-        # 恢复激光点坐标
-        self.pt_pair = copy.deepcopy(self.org_pt_pair)
-
         crop_center_x = (self.pt_pair[0][0] + self.pt_pair[1][0]) / 2.0
         crop_center_y = (self.pt_pair[0][1] + self.pt_pair[1][1]) / 2.0
         crop_w = pt_dis * n_dis_w
@@ -182,3 +178,6 @@ class Laser(Calibrator):
         pos_pt2 = [int(pt_dn[0]), int(max(pt_dn[1] + pt_dis/4, 0))]
         pos_pt3 = [int((pt_up[0]+pt_dn[0])/2), int((pt_up[1]+pt_dn[1])/2)]
         return [pos_pt1, pos_pt2, pos_pt3]
+
+    def get_calibrate_points(self):
+        return self.pt_pair

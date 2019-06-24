@@ -1,7 +1,12 @@
 # coding: utf-8
 import os
+
+import numpy as np
+
 from util.resize_image import *
 from config import IMG_MAX_HEIGHT
+from det.calibrator.laser.seg_laser import segment_laser_points
+from det.calibrator.laser.laser import Laser
 
 if __name__ == '__main__':
     """

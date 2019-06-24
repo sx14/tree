@@ -7,21 +7,15 @@ import cv2
 import config
 from det.trunk.seg_trunk import segment_trunk_int
 from det.trunk.cal_trunk import Trunk
-
-if config.CALIBRATOR == 'laser':
-    from det.calibrator.laser.seg_laser import get_laser_points as get_calibrator_points
-    from det.calibrator.laser.laser import Laser as Calibrator
-else:
-    from det.calibrator.tag.seg_tag import segment_tag as get_calibrator_points
-    from det.calibrator.tag.tag import BlueTag as Calibrator
-
+from det.calibrator.calibrator_factory import get_calibrator
 from util.resize_image import resize_image_with_ratio, recover_coordinate
 from util.result import Result, InfoEnum
 from util.show_image import *
 from util.my_io import *
 
 
-DEBUG = False
+DEBUG = True
+SHOW = True
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
@@ -48,7 +42,7 @@ def measure_all(image_path_list):
         return {'results': []}
 
     seg_count = 0           # 计数分割操作的次数
-    all_results = []        # 保存所有结果
+    results_all = []        # 保存所有结果
     image_num = len(image_path_list)
 
     for i, im_path in enumerate(image_path_list):
@@ -56,7 +50,7 @@ def measure_all(image_path_list):
 
         result = Result()   # 当前图片的分割结果，初始化为失败
         result.set_image_path(im_path)
-        all_results.append(result.get_result())
+        results_all.append(result.get_result())
 
         if DEBUG:
             print('-' * 30)
@@ -70,48 +64,36 @@ def measure_all(image_path_list):
         im_org = cv2.imread(im_path)                        # 加载图片
         im, resize_ratio = resize_image_with_ratio(im_org)  # 调整尺寸
 
-        # step1: 获得激光点对位置，激光点mask，激光mask，激光得分
-        pt_pair, pt_mask, laser_mask, pt_conf = get_calibrator_points(im, False)
-
-        if DEBUG:
-            visualize_image(im, name='img', im_id=im_id)
-            visualize_image(pt_mask, name='pt', im_id=im_id)
-
-        if len(pt_pair) != 2:
-            result.set_info(InfoEnum.LASER_DET_FAILED)
-            if DEBUG:
-                print(InfoEnum.LASER_DET_FAILED)
+        calibrator = get_calibrator(im, im_id, DEBUG and SHOW)
+        if calibrator is None:
+            result.set_info(InfoEnum.CALIBRATOR_DET_FAILED)
             continue
-        else:
-            if DEBUG:
-                print('Laser point detection success.')
-
-        calibrator = Calibrator(pt_pair, pt_mask, laser_mask)
 
         # 在结果中保存激光点坐标
         # resize坐标 -> 原始坐标
-        laser_top_pt = recover_coordinate(calibrator.get_top_pt(), resize_ratio)
-        laser_bottom_pt = recover_coordinate(calibrator.get_bottom_pt(), resize_ratio)
-        result.set_laser_top(laser_top_pt)
-        result.set_laser_bottom(laser_bottom_pt)
+        org_calibrate_pts = []
+        for calibrate_pt in calibrator.get_calibrate_points():
+            org_calibrate_pt = recover_coordinate(calibrate_pt, resize_ratio)
+            org_calibrate_pts.append(org_calibrate_pt)
+        result.set_calibrate_points(org_calibrate_pts)
 
         # step2: 覆盖激光区域
         # TODO: 设备修改后，不需要覆盖激光线
         im_cover = calibrator.cover_calibrator(im)
 
         if DEBUG:
-            visualize_image(im_cover, 'img_cover', im_id=im_id)
+            visualize_image(im_cover, 'img_cover', im_id=im_id, show=DEBUG and SHOW)
 
         # 根据激光点距离，切割图片，缩小分割范围
         # 图片块尺寸由小到大迭代尝试
-        crop_params = [2, 3, 4]
+        crop_params = [2, 4]
         for j, n_crop in enumerate(crop_params):
             im_patch = calibrator.crop_image(im_cover, n_dis_w=n_crop)
             patch_h, patch_w, _ = im_patch.shape
 
             if DEBUG:
                 print('H:%d, W:%d' % (patch_h, patch_w))
-                visualize_image(im_patch, 'patch_%d' % n_crop, im_id=im_id)
+                visualize_image(im_patch, 'patch_%d' % n_crop, im_id=im_id, show=DEBUG and SHOW)
 
             # step4: 分割树干
             if max(im_patch.shape[0], im_patch.shape[1]) > config.NET_MAX_WIDTH:
@@ -127,14 +109,14 @@ def measure_all(image_path_list):
 
             if DEBUG:
                 # show_images([im, trunk_mask], 'segment')
-                visualize_image(trunk_mask, 'trunk_mask', im_id=im_id)
+                visualize_image(trunk_mask, 'trunk_mask', im_id=im_id, show=DEBUG and SHOW)
 
             # step5: 计算树径
             trunk = Trunk(trunk_mask)
 
             if DEBUG:
                 # show_images([im, trunk.trunk_mask, trunk.contour_mask], 'trunk')
-                visualize_image(trunk.contour_mask, 'trunk_contour', im_id=im_id)
+                visualize_image(trunk.contour_mask, 'trunk_contour', im_id=im_id, show=DEBUG and SHOW)
 
             if not trunk.is_seg_succ():
                 # 初步估计分割是否成功
@@ -148,8 +130,8 @@ def measure_all(image_path_list):
                 shot_distance = calibrator.shot_distance()   # 拍摄距离
                 trunk_width, seg_conf, patch_trunk_corners = trunk.real_width_v2(shot_distance, RP_ratio)
                 if trunk_width > 0:
-                    # 置信度：分割置信度 x 激光点置信度
-                    conf = seg_conf * pt_conf
+                    # 置信度：分割置信度 x 标定置信度
+                    conf = seg_conf * calibrator.get_conf()
                     # 图片块坐标 -> resize图片坐标
                     trunk_left_top = calibrator.recover_coordinate(patch_trunk_corners['left_top'])
                     trunk_right_top = calibrator.recover_coordinate(patch_trunk_corners['right_top'])
@@ -172,17 +154,16 @@ def measure_all(image_path_list):
 
                     if DEBUG:
                         print('Trunk width: %.2f CM (%.2f).' % (trunk_width / 10.0, conf))
-                        pts = [laser_bottom_pt, laser_top_pt,
-                               trunk_left_top, trunk_left_bottom,
-                               trunk_right_top, trunk_right_bottom]
-                        show_pts(im_org, pts, im_id=im_id)
+                        pts = org_calibrate_pts + \
+                              [trunk_left_top, trunk_left_bottom, trunk_right_top, trunk_right_bottom]
+                        show_pts(im_org, pts, im_id=im_id, show=DEBUG and SHOW)
                     break
                 else:
                     result.set_info(InfoEnum.TRUNK_EDGE_UNCLEAR)
                     if DEBUG:
                         print('Error is too large.')
 
-    output = {'results': all_results}
+    output = {'results': results_all}
     return output
 
 

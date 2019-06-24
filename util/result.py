@@ -10,13 +10,12 @@ class _InfoEnum:
         # self.BAD_MANUAL_ANNO = 'Bad manual annotation.'
         # self.SUCCESS = 'Success.'
 
-        self.LASER_DET_FAILED = 'LASER_DET_FAILED'
+        self.CALIBRATOR_DET_FAILED = 'CALIBRATOR_DET_FAILED'
         self.TRUNK_TOO_THICK = 'TRUNK_TOO_THICK'
         self.TRUNK_EDGE_UNCLEAR = 'TRUNK_EDGE_UNCLEAR'
         self.IMAGE_NOT_EXIST = 'IMAGE_NOT_EXIST'
         self.BAD_MANUAL_ANNO = 'BAD_MANUAL_ANNO'
         self.SUCCESS = 'SUCCESS'
-
 
 
 InfoEnum = _InfoEnum()
@@ -46,8 +45,7 @@ class Result:
         self._RIGHT_BOTTOM = 'right_bottom'
 
         # 激光点
-        self._LASER_TOP = 'laser_top'
-        self._LASER_BOTTOM = 'laser_bottom'
+        self._CALIBRATE_POINTS = 'calibrate_points'
 
         # key-value
         self._result = {
@@ -59,8 +57,7 @@ class Result:
             self._RIGHT_TOP: None,
             self._LEFT_BOTTOM: None,
             self._RIGHT_BOTTOM: None,
-            self._LASER_TOP: None,
-            self._LASER_BOTTOM: None
+            self._CALIBRATE_POINTS: []
         }
 
     def set_image_path(self, image_path):
@@ -87,8 +84,5 @@ class Result:
     def set_trunk_right_bottom(self, point):
         self._result[self._RIGHT_BOTTOM] = point
 
-    def set_laser_top(self, point):
-        self._result[self._LASER_TOP] = point
-
-    def set_laser_bottom(self, point):
-        self._result[self._LASER_BOTTOM] = point
+    def set_calibrate_points(self, points):
+        self._result[self._CALIBRATE_POINTS] = points

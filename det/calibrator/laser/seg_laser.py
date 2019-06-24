@@ -108,10 +108,10 @@ def get_laser_points(im, show=False):
         pt_pair, pt_mask, laser_mask, pt_score = segment_laser_points(cleaned_im, use_bright=False, show=show)
         pt_score *= 0.6
 
-    # TODO: 没有激光线后，注释掉下两行
+    # TODO: 没有激光线后，不再返回laser_mask
     laser_mask = get_laser_mask(cleaned_im, dilate=False, use_hsv=False, show=False)
     # ===========================
-    return pt_pair, pt_mask, laser_mask, pt_score
+    return pt_pair, pt_mask, pt_score, laser_mask
 
 
 def segment_laser_points(im, use_bright=False, show=False):

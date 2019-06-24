@@ -143,8 +143,7 @@ def load_input(input_path):
 if __name__ == '__main__':
     args = parse_args()
     image_path = args.image_path
-    raw_points = args.points
-    trunk_corners = parse_points(raw_points)
+    trunk_corners = parse_points(args.points)
     result = measure_tree_width(image_path, trunk_corners)
     print_json(result)
 

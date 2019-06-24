@@ -10,19 +10,10 @@ def segment_tag(im):
     im = im.astype(np.int32)
     im_bin = im[:, :, 0] - im[:, :, 1] - im[:, :, 2]
     im_bin[im_bin < 10] = 0
-    im_bin[im_bin > 0] = 255
+    im_bin[im_bin > 0] = 1
     im_bin = im_bin.astype(np.uint8)
-    # 对图像进行“开运算”
-    # 先腐蚀
-    kernel = np.ones((3, 3), np.uint8)
-    im_bin1 = cv2.morphologyEx(im_bin, cv2.MORPH_OPEN, kernel, iterations=4)
-    # 再膨胀
-    im_bin2 = cv2.dilate(im_bin1, kernel, iterations=4)
-
     # 连通区域
-    _, labels, stats, centroids = cv2.connectedComponentsWithStats(im_bin2)
-
-    # show_images([im_grey, im_bin, im_bin1, im_bin2])
+    _, labels, stats, centroids = cv2.connectedComponentsWithStats(im_bin)
 
     # 假设目标在图像中心
     # 找到图像中心所在的连通区域
@@ -32,7 +23,7 @@ def segment_tag(im):
     center_comp_label = labels[im_ct_y, im_ct_x]
     if center_comp_label > 0:
         labels[labels != center_comp_label] = 0
-        labels[labels > 0] = 255
+        labels[labels > 0] = 1
         tag_mask = labels.astype(np.uint8)
         return tag_mask
     else:
