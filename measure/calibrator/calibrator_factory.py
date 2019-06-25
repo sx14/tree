@@ -1,8 +1,8 @@
 import config
-from det.calibrator.laser.seg_laser import get_laser_points
-from det.calibrator.laser.laser import Laser
-from det.calibrator.tag.seg_tag import segment_tag
-from det.calibrator.tag.tag import BlueTag
+from measure.calibrator.laser.seg_laser import get_laser_points
+from measure.calibrator.laser.laser import Laser
+from measure.calibrator.tag.seg_tag import segment_tag
+from measure.calibrator.tag.tag import BlueTag
 from util.show_image import *
 
 
@@ -21,8 +21,16 @@ def get_laser(im, im_id, debug=False):
     return calibrator
 
 
-def get_tag(im, vis=False):
-    return None
+def get_tag(im, im_id, debug=False):
+    tag_mask = segment_tag(im)
+
+    if debug:
+        visualize_image(tag_mask, name='tag', im_id=im_id, show=debug)
+
+    if tag_mask is None:
+        return None
+    else:
+        return BlueTag(tag_mask)
 
 
 def get_calibrator(im, im_id, debug=False):

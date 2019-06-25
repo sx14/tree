@@ -1,10 +1,11 @@
 # coding: utf-8
-from det.common.det_edge import *
-from det.common.geo_utils import *
+from measure.common.det_edge import *
+from measure.common.geo_utils import *
 from config import *
+from measure.calibrator.calibrator import Calibrator
 
 
-class BlueTag:
+class BlueTag(Calibrator):
 
     def _return_flags(self):
         self.SUCCESS = 0
@@ -13,9 +14,10 @@ class BlueTag:
         self.NOT_PERPENDICULAR = 3
 
     def __init__(self, tag_mask):
+        Calibrator.__init__(self, tag_mask, 1.0)
         self.WIDTH = TAG_WIDTH
         self.HEIGHT = TAG_HEIGHT
-        self.CAMERA_FOCAL_LEN = FOCAL_LENGTH
+        self.FOCAL_LEN = FOCAL_LENGTH
         self._return_flags()
 
         self.mask = tag_mask
@@ -126,20 +128,6 @@ class BlueTag:
     def is_edge_det_succ(self):
         return len(self.edges) >= 3
 
-    def check_angle(self):
-        # DEPRECATED
-        tag_w = self.pixel_width()
-        tag_h = self.pixel_height()
-        if tag_w is not None and tag_h is not None:
-            pixel_ratio = tag_h / tag_w
-            real_ratio = self.HEIGHT*1.0 / self.WIDTH
-            if abs(pixel_ratio-real_ratio) < real_ratio * 0.1:
-                return True
-            else:
-                return False
-        else:
-            return False
-
     def check_parallel(self):
         if not self.is_edge_det_succ():
             return self.EDGE_DET_FAILED
@@ -149,8 +137,6 @@ class BlueTag:
         # 取最长边
         edge1 = edges[0]
         edge2 = edges[1]
-        A1, B1, C1 = edge1.normal()
-        A2, B2, C2 = edge2.normal()
 
         alpha = angle(edge1.vec(), edge2.vec())
         if alpha < 2:
@@ -244,12 +230,6 @@ class BlueTag:
         else:
             return None
 
-    def real_width(self):
-        return self.WIDTH
-
-    def real_height(self):
-        return self.HEIGHT
-
     def _RP_ratio_w(self):
         # Tag的实际宽度 / Tag的像素宽度
         pixel_width = self.pixel_width()
@@ -280,7 +260,7 @@ class BlueTag:
 
     def shot_distance(self):
         ratio = self.RP_ratio()
-        focal_len = self.CAMERA_FOCAL_LEN * 1.0
+        focal_len = self.FOCAL_LEN * 1.0
         if ratio is not None:
             return focal_len * ratio
         else:

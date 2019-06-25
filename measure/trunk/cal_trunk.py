@@ -2,8 +2,8 @@
 import cv2
 from scipy.optimize import curve_fit
 
-from det.common.det_edge import *
-from det.common.geo_utils import *
+from measure.common.det_edge import *
+from measure.common.geo_utils import *
 
 
 class Trunk:

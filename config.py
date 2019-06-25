@@ -1,7 +1,7 @@
 # coding: utf-8
 import os
 
-CALIBRATOR = 'laser'
+CALIBRATOR = 'tag'
 
 # ===== tag =====
 TAG_WIDTH = 27      # mm

@@ -5,8 +5,8 @@ import numpy as np
 
 from util.resize_image import *
 from config import IMG_MAX_HEIGHT
-from det.calibrator.laser.seg_laser import segment_laser_points
-from det.calibrator.laser.laser import Laser
+from measure.calibrator.laser.seg_laser import segment_laser_points
+from measure.calibrator.laser.laser import Laser
 
 if __name__ == '__main__':
     """

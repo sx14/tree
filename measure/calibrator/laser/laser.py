@@ -4,8 +4,8 @@ import copy
 import numpy as np
 from config import *
 from util.show_image import *
-from det.common.geo_utils import *
-from det.calibrator.calibrator import Calibrator
+from measure.common.geo_utils import *
+from measure.calibrator.calibrator import Calibrator
 
 
 class Laser(Calibrator):

@@ -1,6 +1,6 @@
 # coding: utf-8
 from config import *
-from det.common.geo_utils import *
+from measure.common.geo_utils import *
 
 
 class Calibrator:

@@ -5,9 +5,9 @@ import argparse
 import cv2
 
 import config
-from det.trunk.seg_trunk import segment_trunk_int
-from det.trunk.cal_trunk import Trunk
-from det.calibrator.calibrator_factory import get_calibrator
+from measure.trunk.seg_trunk import segment_trunk_int
+from measure.trunk.cal_trunk import Trunk
+from measure.calibrator.calibrator_factory import get_calibrator
 from util.resize_image import resize_image_with_ratio, recover_coordinate
 from util.result import Result, InfoEnum
 from util.show_image import *

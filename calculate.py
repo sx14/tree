@@ -1,9 +1,9 @@
 # coding: utf-8
 import os
-from det.common.geo_utils import euc_dis, angle
-from det.trunk.cal_trunk import Edge
-from det.calibrator.laser import get_laser_points
-from det.calibrator.laser import Laser
+from measure.common.geo_utils import euc_dis, angle
+from measure.trunk.cal_trunk import Edge
+from measure.calibrator.laser import get_laser_points
+from measure.calibrator.laser import Laser
 from util.resize_image import *
 from util.result import Result, InfoEnum
 from util.show_image import *
