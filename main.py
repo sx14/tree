@@ -48,7 +48,7 @@ def measure_all(image_path_list):
     for i, im_path in enumerate(image_path_list):
         im_id = im_path.split('/')[-1][:-4]
 
-        result = Result()   # 当前图片的分割结果，初始化为失败
+        result = Result()   # 当前图片的分割结果
         result.set_image_path(im_path)
         results_all.append(result.get_result())
 

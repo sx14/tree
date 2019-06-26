@@ -22,7 +22,6 @@ class BlueTag(Calibrator):
 
         self.mask = tag_mask
         line_mask, lines = extract_lines_lsd(tag_mask)
-        self.line_mask = line_mask
         self.edges = []
         for i, line in enumerate(lines):
             self.edges.append(Edge(line[0, :2], line[0, 2:]))

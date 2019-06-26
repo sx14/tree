@@ -24,7 +24,9 @@ def detect_contour(trunk_mask):
 
 def extract_lines_lsd(contour_mask):
     lsd = cv2.createLineSegmentDetector()
-    lines = lsd.detect(contour_mask)[0]
+    contour_mask_copy = contour_mask.copy()
+    contour_mask_copy[contour_mask_copy > 0] = 255
+    lines = lsd.detect(contour_mask_copy)[0]
     lens = [euc_dis(line[0, :2].tolist(), line[0, 2:].tolist()) for line in lines]
     lens = np.array(lens)
 

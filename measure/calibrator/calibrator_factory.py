@@ -37,6 +37,6 @@ def get_calibrator(im, im_id, debug=False):
     if config.CALIBRATOR == 'laser':
         return get_laser(im, im_id, debug)
     elif config.CALIBRATOR == 'tag':
-        return get_tag(im, debug)
+        return get_tag(im, im_id, debug)
     else:
         return None
