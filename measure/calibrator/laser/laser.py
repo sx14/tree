@@ -109,7 +109,7 @@ class Laser(Calibrator):
     def crop_image(self, im, n_dis_w=3, n_dis_h=2):
         # default:
         # crop width:  3 * pt_dis
-        # crop height: 3 * pt_dis
+        # crop height: 2 * pt_dis
         # 中心为两激光点中心
 
         im_h, im_w, _ = im.shape

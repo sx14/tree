@@ -141,7 +141,7 @@ def cal_cross_pt(l1_n, l2_n):
 
     # [A,B,C]
     # Ax+By+C=0
-    if l1_n is None or l2_n is None or len(l1_n) == len(l2_n) == 3:
+    if l1_n is None or l2_n is None or not (len(l1_n) == len(l2_n) == 3):
         # 输入不合法
         return None
 

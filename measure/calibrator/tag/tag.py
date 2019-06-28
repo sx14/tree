@@ -201,7 +201,10 @@ class BlueTag(Calibrator):
                 if e2_pt is not None:
                     e1_e2_dis.append(euc_dis(e1_pt, e2_pt))
             # 计算均值
-            return sum(e1_e2_dis)*1.0/len(e1_e2_dis)
+            if len(e1_e2_dis) > 0:
+                return sum(e1_e2_dis)*1.0/len(e1_e2_dis)
+            else:
+                return None
         else:
             return None
 
@@ -341,27 +344,80 @@ class BlueTag(Calibrator):
         tag_map = self.calibrator_mask
 
         tag_ys, tag_xs = np.where(tag_map > 0)
+        ymin = tag_ys.min() - 3
+        ymax = tag_ys.max() + 3
+        xmin = tag_xs.min() - 3
+        xmax = tag_xs.max() + 3
+
+        margin = int((ymax - ymin)/2)
+        ymin_above = np.maximum(ymin - margin, 0)
+        margin = ymin - ymin_above
+        region_above_tag = im_copy[ymin_above:ymin, xmin:xmax, :]
+
+        for i in range(ymin, ymax, margin):
+            im_copy[i:i+margin, xmin:xmax] = region_above_tag
+
+        return im_copy
+
+    def crop_image(self, im, n_dis_w=4, n_dis_h=3):
+        # default:
+        # crop width:  4 * height
+        # crop height: 3 * height
+        # 中心为两激光点中心
+
+        im_h, im_w, _ = im.shape
+        pt_dis = self.pixel_height()
+
+        tag_ys, tag_xs = np.where(self.calibrator_mask > 0)
         ymin = tag_ys.min()
         ymax = tag_ys.max()
         xmin = tag_xs.min()
         xmax = tag_xs.max()
 
-        margin = 40
-        ymin_above = np.maximum(ymin - margin, 0)
-        region_above_tag = im_copy[ymin_above:ymin, xmin:xmax, :]
-        ymax_below = np.minimum(ymax + margin, im_h)
-        region_below_tag = im_copy[ymax:ymax_below, xmin:xmax, :]
+        crop_center_x = (xmin + xmax) / 2.0
+        crop_center_y = (ymin + ymax) / 2.0
+        crop_w = pt_dis * n_dis_w
+        crop_h = pt_dis * n_dis_h
 
-        above_below_region = np.concatenate((region_above_tag, region_below_tag), axis=0)
-        tree_color_b = np.mean(above_below_region[:, :, 0])
-        tree_color_g = np.mean(above_below_region[:, :, 1])
-        tree_color_r = np.mean(above_below_region[:, :, 2])
-        im_copy[tag_map > 0, 0] = tree_color_b
-        im_copy[tag_map > 0, 1] = tree_color_g
-        im_copy[tag_map > 0, 2] = tree_color_r
+        crop_ymin = int(np.maximum(crop_center_y - crop_h / 2, 0))
+        crop_ymax = int(np.minimum(crop_center_y + crop_h / 2, im_h))
+        crop_xmin = int(np.maximum(crop_center_x - crop_w / 2, 0))
+        crop_xmax = int(np.minimum(crop_center_x + crop_w / 2, im_w))
 
-        ymin_above = np.maximum(ymin - (ymax - ymin), 0)
-        region_above = im_copy[ymin_above:ymin, xmin:xmax, :]
-        im_copy[ymin:ymin + (ymin - ymin_above), xmin:xmax, :] = region_above
+        self.crop_box = {
+            'xmin': crop_xmin,
+            'ymin': crop_ymin,
+            'xmax': crop_xmax,
+            'ymax': crop_ymax
+        }
 
-        return im_copy
+        im_patch = im[crop_ymin: crop_ymax + 1, crop_xmin: crop_xmax + 1, :]
+
+        return im_patch
+
+    def positive_pts(self):
+        """
+        标签上下各取一个点
+        :return: 坐标列表
+        """
+        im_h, im_w = self.calibrator_mask.shape
+        tag_ys, tag_xs = np.where(self.calibrator_mask > 0)
+        ymin = tag_ys.min()
+        ymax = tag_ys.max()
+        xmin = tag_xs.min()
+        xmax = tag_xs.max()
+
+        if self.crop_box is not None:
+            ymin = ymin - self.crop_box['ymin']
+            xmin = xmin - self.crop_box['xmin']
+            ymax = ymax - self.crop_box['ymin']
+            xmax = xmax - self.crop_box['xmin']
+
+        pt1_x = int((xmin + xmax) / 2)
+        pt1_y = max(ymin - 50, 0)
+        pt2_x = pt1_x
+        pt2_y = min(ymax + 50, im_h-1)
+
+        return [[pt1_x, pt1_y], [pt2_x, pt2_y]]
+
+
