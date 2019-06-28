@@ -107,10 +107,15 @@ class Laser(Calibrator):
         return im_copy
 
     def crop_image(self, im, n_dis_w=3, n_dis_h=2):
-        # default:
-        # crop width:  3 * pt_dis
-        # crop height: 2 * pt_dis
-        # 中心为两激光点中心
+        """
+        以激光点中心为参照，切割图像
+        中心为两激光点中心
+        :param im: 原始图像
+        :param n_dis_w: 图像块宽度为3倍的激光点距离，3 * pt_dis
+        :param n_dis_h: 图像块高度为2倍的激光点距离，2 * pt_dis
+        :return:
+        """
+
 
         im_h, im_w, _ = im.shape
         pt_dis = self.point_pixel_dis()

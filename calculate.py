@@ -2,8 +2,7 @@
 import os
 from measure.common.geo_utils import euc_dis, angle
 from measure.trunk.cal_trunk import Edge
-from measure.calibrator.laser import get_laser_points
-from measure.calibrator.laser import Laser
+from measure.calibrator.calibrator_factory import get_calibrator
 from util.resize_image import *
 from util.result import Result, InfoEnum
 from util.show_image import *
@@ -11,6 +10,7 @@ from util.my_io import *
 import argparse
 
 DEBUG = False
+SHOW = False
 
 
 def parse_args():
@@ -32,30 +32,18 @@ def measure_tree_width(image_path, trunk_corners):
     im = cv2.imread(image_path)  # 加载图片
     im, resize_ratio = resize_image_with_ratio(im)  # 调整尺寸
 
-    # step1: 获得激光点对位置，激光点mask，激光mask，激光得分
-    pt_pair, pt_mask, laser_mask, pt_conf = get_laser_points(im, DEBUG)
-    if DEBUG:
-        show_images([im, laser_mask, pt_mask])
-        pass
-
-    if len(pt_pair) != 2:
-        result.set_info(InfoEnum.LASER_DET_FAILED)
-        if DEBUG:
-            print(InfoEnum.LASER_DET_FAILED)
+    calibrator = get_calibrator(im, 0, DEBUG and SHOW)
+    if calibrator is None:
+        result.set_info(InfoEnum.CALIBRATOR_DET_FAILED)
         return result
-    else:
-        if DEBUG:
-            print('Laser point pair detection success.')
-            pass
-
-    laser = Laser(pt_pair, pt_mask, laser_mask)
 
     # 在结果中保存激光点坐标
     # resize坐标 -> 原始坐标
-    laser_top_pt = recover_coordinate(laser.get_top_pt(), resize_ratio)
-    laser_bottom_pt = recover_coordinate(laser.get_bottom_pt(), resize_ratio)
-    result.set_laser_top(laser_top_pt)
-    result.set_laser_bottom(laser_bottom_pt)
+    org_calibrate_pts = []
+    for calibrate_pt in calibrator.get_calibrate_points():
+        org_calibrate_pt = recover_coordinate(calibrate_pt, resize_ratio)
+        org_calibrate_pts.append(org_calibrate_pt)
+    result.set_calibrate_points(org_calibrate_pts)
 
     # 计算树径
     trunk_left_top = resize_coordinate(trunk_corners['left_top'], resize_ratio)
@@ -77,7 +65,7 @@ def measure_tree_width(image_path, trunk_corners):
         pixel_dis_mid = euc_dis(trunk_left_mid, trunk_right_mid)
 
         pixel_width = (pixel_dis_top + pixel_dis_mid + pixel_dis_bot) / 3.0
-        RP_ratio = laser.RP_ratio()
+        RP_ratio = calibrator.RP_ratio()
 
         # TODO: 此处计算为粗略近似值
         real_width = (pixel_width * RP_ratio)
