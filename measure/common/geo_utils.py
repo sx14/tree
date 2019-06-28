@@ -190,6 +190,13 @@ class Edge:
         assert ~((pt1[0]-pt2[0]) == 0 and (pt1[1]-pt2[1]) == 0)
         self.pts = [pt1, pt2]
         self.merged = False
+        self.connects = [None, None]
+
+    def get_connect(self, ind):
+        return self.connects[ind]
+
+    def set_connect(self, pt_ind, edge, e_pt_ind):
+        self.connects[pt_ind] = (edge, e_pt_ind)
 
     def vec(self):
         """

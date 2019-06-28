@@ -24,12 +24,11 @@ def get_laser(im, im_id, debug=False):
 def get_tag(im, im_id, debug=False):
     tag_mask = segment_tag(im)
 
-    if debug:
-        visualize_image(tag_mask, name='tag', im_id=im_id, show=debug)
-
     if tag_mask is None:
         return None
     else:
+        if debug:
+            visualize_image(tag_mask, name='tag', im_id=im_id, show=debug)
         return BlueTag(tag_mask)
 
 

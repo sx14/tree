@@ -1,8 +1,11 @@
 # coding: utf-8
+
+from util.show_image import show_images
+
 from measure.common.det_edge import *
 from measure.common.geo_utils import *
-from config import *
 from measure.calibrator.calibrator import Calibrator
+from config import *
 
 
 class BlueTag(Calibrator):
@@ -21,18 +24,19 @@ class BlueTag(Calibrator):
         self._return_flags()
 
         self.mask = tag_mask
-        line_mask, lines = extract_lines_lsd(tag_mask)
+        raw_lines = extract_lines_lsd(tag_mask)
+        # show_images([line_mask])
         self.edges = []
-        for i, line in enumerate(lines):
+        for i, line in enumerate(raw_lines):
             self.edges.append(Edge(line[0, :2], line[0, 2:]))
         self._connect_lines()
 
         # debug, show lines
-        im_empty = np.zeros((self.mask.shape[0], self.mask.shape[1], 3)).astype(np.uint8)
-        for i, line in enumerate(lines):
-            x1,y1,x2,y2 = line[0]
-            cv2.line(im_empty, (x1, y1), (x2, y2), (0, 0, 255), 1)
-            # show_image(str(i), im_empty)
+        # im_show = np.zeros((self.mask.shape[0], self.mask.shape[1], 3)).astype(np.uint8)
+        # for i, line in enumerate(raw_lines):
+        #     x1,y1,x2,y2 = line[0]
+        #     cv2.line(im_show, (x1, y1), (x2, y2), (0, 0, 255), 1)
+        # show_images([im_show])
 
     def _connect_lines(self):
         # 连接中断的直线段
@@ -208,8 +212,6 @@ class BlueTag(Calibrator):
         # 取最长边
         edge1 = edges[0]
         edge2 = edges[1]
-        A1, B1, C1 = edge1.normal()
-        A2, B2, C2 = edge2.normal()
 
         alpha = angle(edge1.vec(), edge2.vec())
         if alpha < 5:
@@ -264,3 +266,102 @@ class BlueTag(Calibrator):
             return focal_len * ratio
         else:
             return None
+
+    def get_calibrate_points(self):
+        # 按长度排序
+        edges = sorted(self.edges, key=lambda e: e.length(), reverse=True)
+
+        # 取最长边
+        edge1 = edges[0]
+        edge2 = edges[1]
+
+        # 保存4个标定点
+        calibrate_points = []
+
+        # 计算长边夹角
+        alpha = angle(edge1.vec(), edge2.vec())
+        if alpha < 5:
+
+            # 计算长轴方向的2个标定点
+            A1, B1, C1 = edge1.normal()
+            A2, B2, C2 = edge2.normal()
+
+            # 计算edge1和edge2与x轴交点的中点
+            y_temp = 0
+            x1_temp = (-C1) / A1
+            x2_temp = (-C2) / A2
+            pt_mid = ((x1_temp + x2_temp) / 2.0, y_temp)
+
+            Am = A1
+            Bm = B1
+            Cm = (-A1 * pt_mid[0]) + (-B1 * pt_mid[1])
+
+            long_cal_points = []
+            contour = detect_contour(self.mask)
+            ys, xs = np.where(contour > 0)
+            for i in range(len(xs)):
+                ptx = xs[i]
+                pty = ys[i]
+                diff = abs(Am * ptx + Bm + pty + Cm)
+                if diff < 0.1:
+                    long_cal_points.append([ptx, pty])
+
+            if len(long_cal_points) >= 2:
+                calibrate_points += long_cal_points
+
+            # 计算短轴方向的2个标定点
+            pt1 = edge1.get_pt(0)
+            pt2 = edge1.get_pt(1)
+
+            ptm = [(pt1[0]+pt2[0])/2.0, (pt1[1]+pt2[1])/2.0]
+            edge1_p = edge1.normal_perpendicular(ptm)
+
+            short_cal_points = []
+            if edge1_p is not None:
+                for i in range(len(xs)):
+                    ptx = xs[i]
+                    pty = ys[i]
+                    if abs(Am * ptx + Bm + pty + Cm) < 0.1:
+                        short_cal_points.append([ptx, pty])
+            if len(short_cal_points) >= 2:
+                calibrate_points += short_cal_points
+
+        return calibrate_points
+
+    def cover_calibrator(self, im):
+        """
+        用<蓝色标签>上方的树皮
+        掩盖<蓝色标签>
+        :param im: 图像(cropped)
+        :param tag_map: 标签掩码
+        :return: 去除标签后的图像
+        """
+        im_copy = im.copy()
+        im_h, im_w, _ = im_copy.shape
+        tag_map = self.calibrator_mask
+
+        tag_ys, tag_xs = np.where(tag_map > 0)
+        ymin = tag_ys.min()
+        ymax = tag_ys.max()
+        xmin = tag_xs.min()
+        xmax = tag_xs.max()
+
+        margin = 40
+        ymin_above = np.maximum(ymin - margin, 0)
+        region_above_tag = im_copy[ymin_above:ymin, xmin:xmax, :]
+        ymax_below = np.minimum(ymax + margin, im_h)
+        region_below_tag = im_copy[ymax:ymax_below, xmin:xmax, :]
+
+        above_below_region = np.concatenate((region_above_tag, region_below_tag), axis=0)
+        tree_color_b = np.mean(above_below_region[:, :, 0])
+        tree_color_g = np.mean(above_below_region[:, :, 1])
+        tree_color_r = np.mean(above_below_region[:, :, 2])
+        im_copy[tag_map > 0, 0] = tree_color_b
+        im_copy[tag_map > 0, 1] = tree_color_g
+        im_copy[tag_map > 0, 2] = tree_color_r
+
+        ymin_above = np.maximum(ymin - (ymax - ymin), 0)
+        region_above = im_copy[ymin_above:ymin, xmin:xmax, :]
+        im_copy[ymin:ymin + (ymin - ymin_above), xmin:xmax, :] = region_above
+
+        return im_copy
