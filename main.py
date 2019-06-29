@@ -2,6 +2,7 @@
 import os
 import time
 import argparse
+import traceback
 
 import cv2
 
@@ -13,10 +14,12 @@ from util.resize_image import resize_image_with_ratio, recover_coordinate
 from util.result import Result, InfoEnum
 from util.show_image import *
 from util.my_io import *
+from util.my_logger import save_log
 
 
 DEBUG = False
 SHOW = False
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='TreeMeasure V1.1')
@@ -162,32 +165,33 @@ def measure_all(image_path_list):
                     if DEBUG:
                         print('Error is too large.')
 
-
-
     output = {'results': results_all}
     return output
 
 
 if __name__ == '__main__':
-    args = parse_args()
-    input_path = args.input
-    output_path = args.output
-    raw_list = args.image_list
-    calibrator_type = args.calibrator
 
-    if calibrator_type == 'tag':
-        config.CALIBRATOR = 'tag'
+    try:
+        args = parse_args()
+        input_path = args.input
+        output_path = args.output
+        raw_list = args.image_list
+        calibrator_type = args.calibrator
 
-    if input_path != 'None':
-        image_list = load_image_list(input_path)
-    elif raw_list != 'None':
-        image_list = parse_image_list(raw_list)
-    else:
-        image_list = None
+        if calibrator_type == 'tag':
+            config.CALIBRATOR = 'tag'
 
-    results = measure_all(image_list)
-    print_json(results)
+        if input_path != 'None':
+            image_list = load_image_list(input_path)
+        elif raw_list != 'None':
+            image_list = parse_image_list(raw_list)
+        else:
+            image_list = None
+        results = measure_all(image_list)
+        print_json(results)
 
-    if output_path != 'None':
-        save_path = args.output
-        save_results(results, save_path)
+        if output_path != 'None':
+            save_path = args.output
+            save_results(results, save_path)
+    except:
+        save_log(traceback.format_exc())

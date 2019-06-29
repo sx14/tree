@@ -1,4 +1,6 @@
 data/
+log/
+vis/
 .idea/
 
 *.jpg

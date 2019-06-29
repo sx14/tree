@@ -33,8 +33,8 @@ def visualize_image(im, name='temp', im_id='temp', show=False):
         cv2.destroyAllWindows()
     else:
         import os
-        from config import TEMP_PATH
-        save_dir = os.path.join(TEMP_PATH, im_id)
+        from config import PROJECT_ROOT
+        save_dir = os.path.join(PROJECT_ROOT, 'vis', im_id)
         if im_show.shape == 2:
             suffix = 'png'
         else:

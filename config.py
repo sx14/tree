@@ -37,7 +37,7 @@ SAVE_HEIGHT = 300
 # ==================
 
 # 用于保存中间结果
-TEMP_PATH = os.path.join(os.path.dirname(__file__), 'vis')
+PROJECT_ROOT = os.path.join(os.path.dirname(__file__))
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 

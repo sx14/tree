@@ -1,5 +1,8 @@
 # coding: utf-8
 import os
+import traceback
+import argparse
+
 from measure.common.geo_utils import euc_dis, angle
 from measure.trunk.cal_trunk import Edge
 from measure.calibrator.calibrator_factory import get_calibrator
@@ -7,7 +10,7 @@ from util.resize_image import *
 from util.result import Result, InfoEnum
 from util.show_image import *
 from util.my_io import *
-import argparse
+from util.my_logger import save_log
 
 DEBUG = False
 SHOW = False
@@ -129,13 +132,17 @@ def load_input(input_path):
 
 
 if __name__ == '__main__':
-    args = parse_args()
-    image_path = args.image_path
-    trunk_corners = parse_points(args.points)
-    result = measure_tree_width(image_path, trunk_corners)
-    print_json(result)
 
-    output_path = args.output
-    if output_path != 'None':
-        save_path = args.output
-        save_results(result, save_path)
+    try:
+        args = parse_args()
+        image_path = args.image_path
+        trunk_corners = parse_points(args.points)
+        result = measure_tree_width(image_path, trunk_corners)
+        print_json(result)
+
+        output_path = args.output
+        if output_path != 'None':
+            save_path = args.output
+            save_results(result, save_path)
+    except:
+        save_log(traceback.format_exc())
