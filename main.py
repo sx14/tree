@@ -15,10 +15,8 @@ from util.show_image import *
 from util.my_io import *
 
 
-DEBUG = True
-SHOW = True
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
+DEBUG = False
+SHOW = False
 
 def parse_args():
     parser = argparse.ArgumentParser(description='TreeMeasure V1.1')
