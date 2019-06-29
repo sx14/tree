@@ -59,6 +59,7 @@ class Laser(Calibrator):
             return None
 
     def cover_calibrator(self, im):
+        # TODO: 移除激光线后，将此变量设为False
         has_laser_line = True
         # 用图像块覆盖
         im_copy = im.copy()
@@ -116,7 +117,6 @@ class Laser(Calibrator):
         :return:
         """
 
-
         im_h, im_w, _ = im.shape
         pt_dis = self.point_pixel_dis()
 
@@ -138,15 +138,6 @@ class Laser(Calibrator):
         }
 
         im_patch = im[crop_ymin: crop_ymax + 1, crop_xmin: crop_xmax + 1, :]
-
-        # 更新激光点的坐标
-        # pt1 = self.pt_pair[0]
-        # pt2 = self.pt_pair[1]
-        # pt1[0] = pt1[0] - crop_xmin
-        # pt1[1] = pt1[1] - crop_ymin
-        # pt2[0] = pt2[0] - crop_xmin
-        # pt2[1] = pt2[1] - crop_ymin
-
         return im_patch
 
     def recover_coordinate(self, pt):

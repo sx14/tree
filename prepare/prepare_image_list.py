@@ -1,8 +1,6 @@
 import os
 
-# data_path = 'D:\\linux-workspace\\python-workspace\\tree\\data\\tree_flipped\\'
 # data_path = '../data/tree_m_flipped/'
-# data_path = '/media/sunx/Data/dataset/tree-dataset/test/'
 data_path = '../data/tree_tag_ps/'
 
 image_list = []

@@ -37,6 +37,7 @@ class Result:
         self._CONF = 'conf'
         self._INFO = 'info'
         self._IMAGE_PATH = 'image_path'
+        self._TIME_CONSUME = 'time'
 
         # 树干四角点
         self._LEFT_TOP = 'left_top'
@@ -57,7 +58,8 @@ class Result:
             self._RIGHT_TOP: None,
             self._LEFT_BOTTOM: None,
             self._RIGHT_BOTTOM: None,
-            self._CALIBRATE_POINTS: []
+            self._CALIBRATE_POINTS: [],
+            self._TIME_CONSUME: -1
         }
 
     def set_image_path(self, image_path):
@@ -86,3 +88,6 @@ class Result:
 
     def set_calibrate_points(self, points):
         self._result[self._CALIBRATE_POINTS] = points
+
+    def set_time(self, sec):
+        self._result[self._TIME_CONSUME] = sec
