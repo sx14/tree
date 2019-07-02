@@ -146,4 +146,7 @@ if __name__ == '__main__':
             save_path = args.output
             save_results(result, save_path)
     except:
-        save_log(traceback.format_exc())
+        if 'args' in dir():
+            save_log(args.__str__() + '\n' + traceback.format_exc())
+        else:
+            save_log(traceback.format_exc())

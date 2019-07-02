@@ -39,4 +39,7 @@ if __name__ == '__main__':
         else:
             print(-1)
     except:
-        save_log(traceback.format_exc())
+        if 'args' in dir():
+            save_log(args.__str__() + '\n' + traceback.format_exc())
+        else:
+            save_log(traceback.format_exc())
