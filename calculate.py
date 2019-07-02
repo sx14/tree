@@ -3,7 +3,7 @@ import os
 import traceback
 import argparse
 
-from measure.common.geo_utils import euc_dis, angle
+from measure.common.geo_utils import angle, parallel_distance
 from measure.trunk.cal_trunk import Edge
 from measure.calibrator.calibrator_factory import get_calibrator
 from util.resize_image import *
@@ -61,34 +61,26 @@ def measure_tree_width(image_path, trunk_corners):
     # 计算树径
     trunk_left_top = resize_coordinate(trunk_corners['left_top'], resize_ratio)
     trunk_left_bottom = resize_coordinate(trunk_corners['left_bottom'], resize_ratio)
-    trunk_left_mid = [(trunk_left_top[0] + trunk_left_bottom[0]) / 2.0,
-                      (trunk_left_top[1] + trunk_left_bottom[1]) / 2.0]
     trunk_right_top = resize_coordinate(trunk_corners['right_top'], resize_ratio)
     trunk_right_bottom = resize_coordinate(trunk_corners['right_bottom'], resize_ratio)
-    trunk_right_mid = [(trunk_right_top[0] + trunk_right_bottom[0]) / 2.0,
-                      (trunk_right_top[1] + trunk_right_bottom[1]) / 2.0]
 
     l_line = Edge(trunk_left_top, trunk_left_bottom)
     r_line = Edge(trunk_right_top, trunk_right_bottom)
 
     alpha = angle(l_line.vec(), r_line.vec())
-    if alpha < 10:
-        pixel_dis_top = euc_dis(trunk_left_top, trunk_right_top)
-        pixel_dis_bot = euc_dis(trunk_left_bottom, trunk_right_bottom)
-        pixel_dis_mid = euc_dis(trunk_left_mid, trunk_right_mid)
+    if alpha < 5:
+        pixel_dis_l2r = parallel_distance(l_line, r_line)
+        pixel_dis_r2l = parallel_distance(r_line, l_line)
+        if pixel_dis_r2l is not None and pixel_dis_r2l is not None:
+            pixel_width = (pixel_dis_l2r + pixel_dis_r2l) / 2.0
+            RP_ratio = calibrator.RP_ratio()
 
-        pixel_width = (pixel_dis_top + pixel_dis_mid + pixel_dis_bot) / 3.0
-        RP_ratio = calibrator.RP_ratio()
-
-        # TODO: 此处计算为粗略近似值
-        real_width = (pixel_width * RP_ratio)
-        result.set_info(InfoEnum.SUCCESS)
-        result.set_trunk_left_top(trunk_corners['left_top'])
-        result.set_trunk_left_bottom(trunk_corners['left_bottom'])
-        result.set_trunk_right_top(trunk_corners['right_top'])
-        result.set_trunk_right_bottom(trunk_corners['right_bottom'])
-        result.set_width(real_width)
-        result.set_conf(1.0)
+            real_width = (pixel_width * RP_ratio)
+            result.set_info(InfoEnum.SUCCESS)
+            result.set_width(real_width)
+            result.set_conf(1.0)
+        else:
+            result.set_info(InfoEnum.BAD_MANUAL_ANNO)
     else:
         result.set_info(InfoEnum.BAD_MANUAL_ANNO)
 

@@ -4,6 +4,34 @@
 import math
 
 
+def parallel_distance(edge1, edge2):
+    if edge1 is None or edge2 is None:
+        return None
+
+    dis_sum = 0.0
+    dis_cnt = 0.0
+    v1 = edge1.vec()
+    v2 = edge2.vec()
+    alpha = angle(v1, v2)
+    if alpha > 5:
+        return None
+    else:
+        pts1 = edge1.get_pts(10)
+        for pt1 in pts1:
+            edge1_p = edge1.normal_perpendicular(pt1)
+            if edge1_p is None:
+                continue
+            pt2 = cal_cross_pt(edge1_p, edge2.normal())
+            if pt2 is None:
+                continue
+            dis_sum += euc_dis(pt1, pt2)
+            dis_cnt += 1
+    if dis_cnt > 0:
+        return dis_sum / dis_cnt
+    else:
+        return None
+
+
 def eight_connected(pt1, pt2):
     """
     判断两个坐标是否8连通
