@@ -172,8 +172,8 @@ class Laser(Calibrator):
 
         pos_pt1 = [int(pt_up[0]), int(max(pt_up[1] - pt_dis/4, 0))]
         pos_pt2 = [int(pt_dn[0]), int(max(pt_dn[1] + pt_dis/4, 0))]
-        pos_pt3 = [int((pt_up[0]+pt_dn[0])/2), int((pt_up[1]+pt_dn[1])/2)]
-        return [pos_pt1, pos_pt2, pos_pt3]
+        # pos_pt3 = [int((pt_up[0]+pt_dn[0])/2), int((pt_up[1]+pt_dn[1])/2)]
+        return [pos_pt1, pos_pt2]
 
     def get_calibrate_points(self):
         return self.pt_pair
