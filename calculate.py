@@ -37,6 +37,11 @@ def measure_tree_width(image_path, trunk_corners):
         result.set_info(InfoEnum.BAD_MANUAL_ANNO)
         return result
 
+    result.set_trunk_left_top(trunk_corners['left_top'])
+    result.set_trunk_left_bottom(trunk_corners['left_bottom'])
+    result.set_trunk_right_top(trunk_corners['right_top'])
+    result.set_trunk_left_bottom(trunk_corners['right_bottom'])
+
     im = cv2.imread(image_path)  # 加载图片
     im, resize_ratio = resize_image_with_ratio(im)  # 调整尺寸
 
