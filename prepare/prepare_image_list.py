@@ -1,7 +1,7 @@
 import os
 
-# data_path = '../data/tree_m_flipped/'
-data_path = '../data/tree_tag_ps/'
+data_path = '../data/tree_flipped/'
+# data_path = '../data/tree_tag_ps/'
 
 image_list = []
 for img_id in sorted(os.listdir(data_path)):
@@ -9,7 +9,7 @@ for img_id in sorted(os.listdir(data_path)):
     image_abs_path = os.path.abspath(image_rel_path)
     image_list.append(image_abs_path+'\n')
 
-image_list = image_list[0:2]
+# image_list = image_list[0:2]
 save_path = '../image_list.txt'
 with open(save_path, 'w') as f:
     f.writelines(image_list)

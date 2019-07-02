@@ -11,8 +11,8 @@ def get_laser(im, im_id, debug=False):
     pt_pair, pt_mask, pt_conf, laser_mask = get_laser_points(im, debug)
 
     if debug:
-        visualize_image(im, name='img', im_id=im_id, show=debug)
-        visualize_image(pt_mask, name='pt', im_id=im_id, show=debug)
+        visualize_image(im, name='img', im_id=im_id)
+        visualize_image(pt_mask, name='pt', im_id=im_id)
 
     if len(pt_pair) == 2:
         calibrator = Laser(pt_pair, pt_mask, pt_conf, laser_mask)
@@ -28,7 +28,7 @@ def get_tag(im, im_id, debug=False):
         return None
     else:
         if debug:
-            visualize_image(tag_mask, name='tag', im_id=im_id, show=debug)
+            visualize_image(tag_mask, name='tag', im_id=im_id)
         return BlueTag(tag_mask)
 
 

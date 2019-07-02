@@ -4,6 +4,7 @@ from scipy.optimize import curve_fit
 
 from measure.common.det_edge import *
 from measure.common.geo_utils import *
+from util.show_image import visualize_image
 
 
 class Trunk:
@@ -37,6 +38,7 @@ class Trunk:
                 elif pt[1]-curr[1] >= 2:
                     break
             # 从pts中移除属于左边缘的点
+            l_pt_inds = sorted(l_pt_inds, reverse=True)
             for l_pt_ind in l_pt_inds:
                 pts.pop(l_pt_ind)
         r_pts = pts
@@ -79,9 +81,9 @@ class Trunk:
                 right_pt = pt
                 right_diff_min = diff
         if left_pt is not None and right_pt is not None:
-            return euc_dis(left_pt, right_pt)
+            return euc_dis(left_pt, right_pt), left_pt, right_pt
         else:
-            return None
+            return None, None, None
 
     @staticmethod
     def _fit_edge(pts, y_max, y_min=0):
@@ -143,6 +145,7 @@ class Trunk:
 
         # debug
         im_sub_mask = np.stack((sub_mask, sub_mask, sub_mask), axis=2)
+        im_sub_mask[im_sub_mask > 0] = 255
         im_sub_mask = im_sub_mask.astype(np.uint8)
         x1 = int(l_line.get_pt(0)[0])
         y1 = int(l_line.get_pt(0)[1])
@@ -154,8 +157,7 @@ class Trunk:
         x2 = int(r_line.get_pt(1)[0])
         y2 = int(r_line.get_pt(1)[1])
         cv2.line(im_sub_mask, (x1, y1), (x2, y2), (0, 0, 255), 1)
-        # show_image(im_sub_mask)
-        # cv2.imwrite('%d.jpg' % (np.random.randint(0, 1000)), im_sub_mask)
+        # visualize_image(im_sub_mask, 'sub1_%d' % np.random.randint(0, 1000), '2193')
 
         alpha = angle(l_line.vec(), r_line.vec())
         if alpha < 5:
@@ -167,7 +169,7 @@ class Trunk:
                 l_norm_per = l_line.normal_perpendicular(pt)
                 if l_norm_per is None:
                     continue
-                wid = self._width(l_norm_per, l_pts, r_pts)
+                wid, _, _ = self._width(l_norm_per, l_pts, r_pts)
                 if wid is not None:
                     l2r_dis.append(wid)
 
@@ -177,9 +179,11 @@ class Trunk:
                 r_norm_per = r_line.normal_perpendicular(pt)
                 if r_norm_per is None:
                     continue
-                wid = self._width(r_norm_per, l_pts, r_pts)
+                wid, lpt, rpt = self._width(r_norm_per, l_pts, r_pts)
                 if wid is not None:
                     r2l_dis.append(wid)
+                    cv2.line(im_sub_mask, tuple(lpt), tuple(rpt), (0, 255, 0), 1)
+            # visualize_image(im_sub_mask, 'sub2_%d' % np.random.randint(0, 1000), '2193')
             # 计算均值
             dis_arr = l2r_dis + r2l_dis
             if len(dis_arr) > 0:
@@ -248,9 +252,8 @@ class Trunk:
         # 333333
         for i in range(n_patch):
             # 对每一块
-            if i == 2:
-                a = 1
             sub_mask = self.contour_mask[int(i*interval_y):int((i+1)*interval_y), :]
+            # visualize_image(sub_mask, 'sub_%d' % i, '2193')
             patch_width, sub_patch_corners = self._patch_width(sub_mask)
             if patch_width is not None:
                 patch_widths.append(patch_width)
@@ -282,7 +285,7 @@ class Trunk:
             width = sum(patch_widths)*1.0/len(patch_widths)
             return width, conf, trunk_corners
         else:
-            return -1, -1, None
+            return None, None, None
 
     def real_width_v1(self, shot_distance, RP_ratio):
         # W = M * (X/(X-M))

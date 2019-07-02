@@ -12,7 +12,13 @@ def eight_connected(pt1, pt2):
     :return:
     """
     if abs(pt1[0] - pt2[0]) <= 1 and abs(pt1[1] - pt2[1]) <= 1:
-        return True
+        # pt1,pt2在同一个井字格里
+        if pt1[0] == pt2[0] and pt1[1] == pt2[1]:
+            # 同一个点
+            return False
+        else:
+            # 不同的点
+            return True
     else:
         return False
 

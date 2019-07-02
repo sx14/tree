@@ -1,5 +1,5 @@
 numpy
 scipy
-opencv-python
-opencv-contrib-python
+opencv-python==3.4.0.12
+opencv-contrib-python==3.4.0.12
 tensorflow==1.4.0

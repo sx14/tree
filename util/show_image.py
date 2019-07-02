@@ -77,8 +77,8 @@ def show_pts(im, pts, name='final', im_id='0', show=False):
         x, y = pt
         box_xmin = max(0, x-8)
         box_ymin = max(0, y-8)
-        box_xmax = min(x+8, w)
-        box_ymax = min(y+8, h)
-        im[box_ymin:box_ymax, box_xmin:box_xmax] = [147, 20, 255]
+        box_xmax = min(x+8, w-1)
+        box_ymax = min(y+8, h-1)
+        im[box_ymin:box_ymax+1, box_xmin:box_xmax+1] = [147, 20, 255]
 
     visualize_image(im, name=name, im_id = im_id, show=show)

@@ -1,4 +1,5 @@
 # coding: utf-8
+
 import os
 import time
 import argparse
@@ -22,10 +23,10 @@ SHOW = False
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='TreeMeasure V1.1')
-    parser.add_argument('-i', '--input',    help='Please provide image list path.', default='None')
-    parser.add_argument('-o', '--output', help='Please provide output file path.', default='None')
-    parser.add_argument('-l', '--image_list', help='Please provide image list (use \\n to separate).', default='None')
+    parser = argparse.ArgumentParser(description='TreeMeasure')
+    parser.add_argument('-i', '--input',    help='Please provide image list path.')
+    parser.add_argument('-o', '--output', help='Please provide output file path.')
+    parser.add_argument('-l', '--image_list', help='Please provide image list (use \\n to separate).')
     parser.add_argument('-c', '--calibrator', help='User "laser" or "tag" to calibrate.', default='laser')
     args = parser.parse_args()
     return args
@@ -47,12 +48,12 @@ def measure_all(image_path_list):
     image_num = len(image_path_list)
 
     for i, im_path in enumerate(image_path_list):
-        im_id = im_path.split('/')[-1][:-4]
+        im_id = im_path.split('/')[-1].split('.')[0]
 
-        time_start = time.time()
         result = Result()   # 当前图片测量结果
         result.set_image_path(im_path)
         results_all.append(result.get_result())
+        time_start = time.time()
 
         if DEBUG:
             print('-' * 30)
@@ -181,16 +182,16 @@ if __name__ == '__main__':
         if calibrator_type == 'tag':
             config.CALIBRATOR = 'tag'
 
-        if input_path != 'None':
+        if input_path is not None:
             image_list = load_image_list(input_path)
-        elif raw_list != 'None':
+        elif raw_list is not None:
             image_list = parse_image_list(raw_list)
         else:
             image_list = None
         results = measure_all(image_list)
         print_json(results)
 
-        if output_path != 'None':
+        if output_path is not None:
             save_path = args.output
             save_results(results, save_path)
     except:

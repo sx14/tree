@@ -100,6 +100,8 @@ def get_laser_points(im, show=False):
     """
     # 只保留中心区域
     cleaned_im = clean_image(im)
+    # visualize_image(cleaned_im, 'clean', '2193')
+
     # 尝试使用高亮区域寻找激光点
     pt_pair, pt_mask, laser_mask, pt_score = segment_laser_points(cleaned_im, use_bright=True, show=show)
     if len(pt_pair) <= 0:

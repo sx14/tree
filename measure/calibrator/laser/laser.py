@@ -154,8 +154,8 @@ class Laser(Calibrator):
 
     def positive_pts(self):
         pt_dis = self.point_pixel_dis()
-        pt1 = self.pt_pair[0]
-        pt2 = self.pt_pair[1]
+        pt1 = copy.deepcopy(self.pt_pair[0])
+        pt2 = copy.deepcopy(self.pt_pair[1])
 
         if self.crop_box is not None:
             pt1[0] = pt1[0] - self.crop_box['xmin']
