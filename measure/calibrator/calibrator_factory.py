@@ -29,7 +29,11 @@ def get_tag(im, im_id, debug=False):
     else:
         if debug:
             visualize_image(tag_mask, name='tag', im_id=im_id)
-        return BlueTag(tag_mask)
+        tag = BlueTag(tag_mask)
+        if tag.is_available():
+            return tag
+        else:
+            return None
 
 
 def get_calibrator(im, im_id, debug=False):

@@ -10,18 +10,11 @@ from config import *
 
 class BlueTag(Calibrator):
 
-    def _return_flags(self):
-        self.SUCCESS = 0
-        self.EDGE_DET_FAILED = 1
-        self.NOT_PARALLEL = 2
-        self.NOT_PERPENDICULAR = 3
-
     def __init__(self, tag_mask):
         Calibrator.__init__(self, tag_mask, 1.0)
         self.WIDTH = TAG_WIDTH
         self.HEIGHT = TAG_HEIGHT
         self.FOCAL_LEN = FOCAL_LENGTH
-        self._return_flags()
 
         self.mask = tag_mask
         raw_lines = extract_lines_lsd(tag_mask)
@@ -128,12 +121,15 @@ class BlueTag(Calibrator):
         im_show = im_empty.astype(np.uint8)
         return im_show
 
-    def is_edge_det_succ(self):
+    def _is_edge_det_succ(self):
         return len(self.edges) >= 3
 
-    def check_parallel(self):
-        if not self.is_edge_det_succ():
-            return self.EDGE_DET_FAILED
+    def is_available(self):
+        return self._check_parallel() and self._check_wh_ratio()
+
+    def _check_parallel(self):
+        if not self._is_edge_det_succ():
+            return False
         # 按长度排序
         edges = sorted(self.edges, key=lambda e: e.length(), reverse=True)
 
@@ -143,42 +139,22 @@ class BlueTag(Calibrator):
 
         alpha = angle(edge1.vec(), edge2.vec())
         if alpha < 2:
-            return self.SUCCESS
+            return True
         else:
-            return self.NOT_PARALLEL
+            return False
 
-    def check_perpendicular(self):
-        if not self.is_edge_det_succ():
-            return self.EDGE_DET_FAILED
-
-        # 按长度排序
-        edges = sorted(self.edges, key=lambda e: e.length(), reverse=True)
-
-        # 取最长边
-        edge1 = edges[0]
-        edge2 = edges[1]
-
-        # 找与edge1, edge2垂直的edge
-        edge3 = None
-        for edge in edges[2:]:
-            alpha1 = angle(edge1.vec(), edge.vec())
-            alpha2 = angle(edge2.vec(), edge.vec())
-            if abs(180-alpha1-alpha2) < 10:
-                edge3 = edge
-                break
-
-        if edge3 is not None:
-            len_ratio = edge3.length() / edge1.length()
-            angle_diff1 = abs(angle(edge1.vec(), edge3.vec()) - 90)
-            angle_diff2 = abs(angle(edge2.vec(), edge3.vec()) - 90)
-            angle_diff = max(angle_diff1, angle_diff2)
-            if len_ratio < 0.1:
-                return self.EDGE_DET_FAILED
-            if angle_diff > 2:
-                return self.NOT_PERPENDICULAR
-            return self.SUCCESS
+    def _check_wh_ratio(self):
+        w = self.pixel_width()
+        h = self.pixel_height()
+        if w is not None and h is not None:
+            pixel_hw_ratio = h * 1.0 / w
+            real_hw_ratio = self.HEIGHT * 1.0 / self.WIDTH
+            if abs(pixel_hw_ratio - real_hw_ratio) < 0.3:
+                return True
+            else:
+                return False
         else:
-            return self.EDGE_DET_FAILED
+            return False
 
     def pixel_width(self):
         # 按长度排序
@@ -420,4 +396,5 @@ class BlueTag(Calibrator):
 
         return [[pt1_x, pt1_y], [pt2_x, pt2_y]]
 
-
+    def get_pixel_scale(self):
+        return self.pixel_height()

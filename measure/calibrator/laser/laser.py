@@ -177,3 +177,6 @@ class Laser(Calibrator):
 
     def get_calibrate_points(self):
         return self.pt_pair
+
+    def get_pixel_scale(self):
+        return self.point_pixel_dis()

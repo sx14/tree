@@ -3,18 +3,13 @@
 
 class _InfoEnum:
     def __init__(self):
-        # self.LASER_DET_FAILED = 'Laser point detection failed.'
-        # self.STAND_TOO_CLOSE = 'Stand too close to tree.'
-        # self.TRUNK_EDGE_UNCLEAR = 'Trunk edges are not clear.'
-        # self.IMAGE_NOT_EXIST = 'Image not exist.'
-        # self.BAD_MANUAL_ANNO = 'Bad manual annotation.'
-        # self.SUCCESS = 'Success.'
 
         self.CALIBRATOR_DET_FAILED = 'CALIBRATOR_DET_FAILED'
         self.TRUNK_TOO_THICK = 'TRUNK_TOO_THICK'
         self.TRUNK_EDGE_UNCLEAR = 'TRUNK_EDGE_UNCLEAR'
         self.IMAGE_NOT_EXIST = 'IMAGE_NOT_EXIST'
         self.BAD_MANUAL_ANNO = 'BAD_MANUAL_ANNO'
+        self.STAND_TOO_CLOSE = 'STAND_TOO_CLOSE'
         self.SUCCESS = 'SUCCESS'
 
 

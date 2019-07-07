@@ -23,11 +23,7 @@ FOCAL_LENGTH = 591           # pixel
 # ===== segmentation =====
 # 分割网络能接受的最大图像宽度
 # 更换显卡时需重新测试并设置
-# ( 6G GTX1060): 800
-# (12G GTX1080): ?
-NET_MAX_WIDTH = 1000
-ORG_IM_HEIGHT = 4000    # pixel
-ORG_IM_WIDTH = 3000     # pixel
+NET_MAX_WIDTH = 600
 # ==================
 
 
@@ -39,5 +35,6 @@ SAVE_HEIGHT = 300
 # 用于保存中间结果
 PROJECT_ROOT = os.path.join(os.path.dirname(__file__))
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 

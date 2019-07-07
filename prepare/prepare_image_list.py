@@ -1,7 +1,9 @@
 import os
 
-data_path = '../data/tree_flipped/'
+# data_path = '../data/tree_flipped/'
 # data_path = '../data/tree_tag_ps/'
+
+data_path = '../data/tree_plus/laser'
 
 image_list = []
 for img_id in sorted(os.listdir(data_path)):

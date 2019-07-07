@@ -45,6 +45,7 @@ def measure_tree_width(image_path, trunk_corners):
     im = cv2.imread(image_path)  # 加载图片
     im, resize_ratio = resize_image_with_ratio(im)  # 调整尺寸
 
+    # 检测标定物
     calibrator = get_calibrator(im, 0, DEBUG and SHOW)
     if calibrator is None:
         result.set_info(InfoEnum.CALIBRATOR_DET_FAILED)

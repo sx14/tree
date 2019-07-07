@@ -50,3 +50,6 @@ class Calibrator:
 
     def get_calibrate_points(self):
         raise NotImplementedError('not implemented')
+
+    def get_pixel_scale(self):
+        raise NotImplementedError('not implemented')

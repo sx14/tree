@@ -67,12 +67,18 @@ def measure_all(image_path_list):
         im_org = cv2.imread(im_path)                        # 加载图片
         im, resize_ratio = resize_image_with_ratio(im_org)  # 调整尺寸
 
-        # step1: 找到标定物
+        # step1: 检测标定物
         calibrator = get_calibrator(im, im_id, DEBUG and SHOW)
         if calibrator is None:
             result.set_info(InfoEnum.CALIBRATOR_DET_FAILED)
             continue
 
+        # 检查站位
+        calibrator_ratio = calibrator.get_pixel_scale() / im.shape[0]
+        if calibrator_ratio > 0.25:
+            result.set_info(InfoEnum.STAND_TOO_CLOSE)
+            return result
+        continue
         # 在结果中保存标定物坐标
         # resize坐标 -> 原始坐标
         org_calibrate_pts = []
@@ -99,7 +105,7 @@ def measure_all(image_path_list):
                 visualize_image(im_patch, 'patch_%d' % n_crop, im_id=im_id, show=DEBUG and SHOW)
 
             # step4: 分割树干
-            if max(im_patch.shape[0], im_patch.shape[1]) > config.NET_MAX_WIDTH:
+            if im_patch.shape[0] > config.NET_MAX_WIDTH and im_patch.shape[1] > config.NET_MAX_WIDTH:
                 # 待分割的目标尺寸太大
                 result.set_info(InfoEnum.TRUNK_TOO_THICK)
                 break
