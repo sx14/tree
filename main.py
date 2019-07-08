@@ -18,8 +18,8 @@ from util.my_io import *
 from util.my_logger import save_log
 
 
-DEBUG = True
-SHOW = True
+DEBUG = False
+SHOW = False
 
 
 def parse_args():
