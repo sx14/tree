@@ -5,5 +5,5 @@ echo "Preparing virtual environment ... success!"
 source env/bin/activate
 echo "Activate virtual environment ... success!"
 echo "Installing requirements for TreeMeasure-python-part (this may take a long time) ..."
-pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install -r requirements.txt -i http://mirrors.aliyun.com/pypi/simple/
 echo "Installing requirements for TreeMeasure-python-part ... success!"
