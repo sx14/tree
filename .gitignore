@@ -1,4 +1,6 @@
 data/
+log/
+vis/
 .idea/
 
 *.jpg
@@ -7,3 +9,5 @@ data/
 *.zip
 
 *.pyc
+*.json
+image_list.txt

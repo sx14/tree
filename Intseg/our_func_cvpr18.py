@@ -9,14 +9,17 @@ import scipy.linalg
 from copy import copy, deepcopy
 from scipy import ndimage
 
+
 def compIoU(im1, im2):
     im1_mask = (im1>0.5)
     im2_mask = (im2>0.5)
     iou = np.sum(im1_mask&im2_mask)/np.sum(im1_mask|im2_mask)
     return iou
 
+
 def lrelu(x):
     return tf.maximum(x*0.2,x)
+
 
 def identity_initializer():
     def _initializer(shape, dtype=tf.float32, partition_info=None):
@@ -121,7 +124,6 @@ def our_func(usrId, imIdx, im_path, cnt, pn, clk):
         # print('loaded '+ckpt.model_checkpoint_path)
         saver.restore(sess,ckpt.model_checkpoint_path)
 
-
     input_image = cv2.imread(im_path, -1)
     iH, iW, _ = input_image.shape
     if cnt == 0:
@@ -194,7 +196,7 @@ def our_func_sunx(usrId, imIdx, im, cnt, pn, clk):
         network=build(input,sz)
 
     saver = tf.train.Saver(var_list=[var for var in tf.trainable_variables() if var.name.startswith('g_')])
-    sess.run(tf.initialize_all_variables())
+    sess.run(tf.global_variables_initializer())
 
     ckpt=tf.train.get_checkpoint_state("Models/ours_cvpr18")
     if ckpt:

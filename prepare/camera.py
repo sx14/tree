@@ -1,9 +1,12 @@
 # coding: utf-8
-from det.tag.seg_tag import *
-from det.tag.cal_tag import *
-from util.show_image import *
+import os
+
+import numpy as np
+
 from util.resize_image import *
 from config import IMG_MAX_HEIGHT
+from measure.calibrator.laser.seg_laser import segment_laser_points
+from measure.calibrator.laser.laser import Laser
 
 if __name__ == '__main__':
     """
@@ -11,48 +14,42 @@ if __name__ == '__main__':
     单位是pixel
     """
 
-    img_root = '../data/tag'
+    img_root = '../data/laser'
 
     focal_dis_arr = []
-    focal_dis_w_arr = []
-    focal_dis_h_arr = []
 
     print('Image height(resized): %d' % IMG_MAX_HEIGHT)
-    print('dis mm: focal_w pix | focal_h pix')
-    print('---------------------------------')
-    for i, img_id in enumerate(os.listdir(img_root)):
+    print('dis mm: focal pix (conf)')
+    print('-' * 30)
+    for i, img_id in enumerate(sorted(os.listdir(img_root))):
         im_path = os.path.join(img_root, img_id)
         im = cv2.imread(im_path)
         im = resize_image(im)
 
-        tag_mask = segment_tag(im)
+        pt_pair, pt_mask, laser_mask, pt_score = segment_laser_points(im, use_bright=True)
+        # show_images([im, laser_mask, pt_mask])
 
-        tag = BlueTag(tag_mask)
-        show = tag.show_lines()
-        # show_image('', show)
+        if len(pt_pair) == 0:
+            print('[WARNING] Laser point pair detection failed.')
+            continue
 
-        real_width = tag.WIDTH
-        pixel_width = tag.pixel_width()
+        laser = Laser(pt_pair, pt_mask, laser_mask)
 
-        real_height = tag.HEIGHT
-        pixel_height = tag.pixel_height()
+        real_dis = laser.POINT_DISTANCE
+        pixel_dis = laser.point_pixel_dis()
 
-        tag2lens = int(img_id.split('.')[0])*10.0
+        shot_dis = int(img_id.split('.')[0]) * 10.0 + 30
 
-        focal_dis_w = tag2lens * (pixel_width / real_width)
-        focal_dis_h = tag2lens * (pixel_height / real_height)
-        print('%d mm: %.2f pix | %.2f pix' % (tag2lens, focal_dis_w, focal_dis_h))
-        focal_dis_arr.append((focal_dis_w+focal_dis_h)/2.0)
-        focal_dis_h_arr.append(focal_dis_h)
-        focal_dis_w_arr.append(focal_dis_w)
+        focal_dis = shot_dis * (pixel_dis / real_dis)
+        print('%d mm: %.2f pix (%.2f)' % (shot_dis, focal_dis, pt_score))
+        focal_dis_arr.append(focal_dis)
 
-    print('>>>>>>>>>>>>>>>>>>>>>')
-    focal_dis_w_arr = np.array(focal_dis_w_arr)
-    focal_dis_h_arr = np.array(focal_dis_h_arr)
-    print('VAR: w(%.2f) | h(%.2f)' % (focal_dis_w_arr.var(), focal_dis_h_arr.var()))
+    print('-' * 30)
+    focal_dis_arr = np.array(focal_dis_arr)
+    print('VAR: %.2f' % (focal_dis_arr.var()))
 
-    focal_dis = sum(focal_dis_arr) / len(focal_dis_arr)
-    print('FOCAL_LENGTH=%.4f pix' % focal_dis)
+    focal_dis_avg = sum(focal_dis_arr) / len(focal_dis_arr)
+    print('FOCAL_LENGTH=%.4f pix' % focal_dis_avg)
 
 
 
