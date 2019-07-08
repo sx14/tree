@@ -18,8 +18,8 @@ from util.my_io import *
 from util.my_logger import save_log
 
 
-DEBUG = False
-SHOW = False
+DEBUG = True
+SHOW = True
 
 
 def parse_args():
@@ -78,7 +78,7 @@ def measure_all(image_path_list):
         if calibrator_ratio > 0.25:
             result.set_info(InfoEnum.STAND_TOO_CLOSE)
             return result
-        continue
+        
         # 在结果中保存标定物坐标
         # resize坐标 -> 原始坐标
         org_calibrate_pts = []

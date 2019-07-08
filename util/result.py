@@ -10,6 +10,7 @@ class _InfoEnum:
         self.IMAGE_NOT_EXIST = 'IMAGE_NOT_EXIST'
         self.BAD_MANUAL_ANNO = 'BAD_MANUAL_ANNO'
         self.STAND_TOO_CLOSE = 'STAND_TOO_CLOSE'
+        self.ERROR = 'ERROR'
         self.SUCCESS = 'SUCCESS'
 
 
@@ -48,7 +49,7 @@ class Result:
             self._IMAGE_PATH: None,
             self._WIDTH: -1,
             self._CONF: -1,
-            self._INFO: 'Error is too large.',
+            self._INFO: InfoEnum.ERROR,
             self._LEFT_TOP: None,
             self._RIGHT_TOP: None,
             self._LEFT_BOTTOM: None,
