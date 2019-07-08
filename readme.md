@@ -12,7 +12,7 @@ sh install.sh
 3. Prepare pretrained model.
 
 ```
-# Open https://share.weiyun.com/57bTeUv (not uploaded yet) with browser and download "Models.zip".
+# Open link([https://share.weiyun.com/57bTeUv]) with browser and download "Models.zip"(not uploaded yet).
 unzip Models.zip
 mv Models Intset
 ```
